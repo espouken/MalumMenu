@@ -65,7 +65,7 @@ Changes from @astra1dev's fork:
   - Player rendering for Crewmates, Impostors, Ghosts and Dead bodys
   - Tracking with color/role-based display options (else its role color based)
   - Map background support (Skeld, Polus only rn)
-  - Kill, vent in/out, and task completion indicators
+  - Kill, vent in/out, shapeshifts, and task completion indicators
   - Configurable tracers showing player movement paths (between 0-3000ms)
   - Toggle between follow (centered, zoomed) and fixed (full map) view modes
 - Added replay system to Radar with round navigation (Prev/Next/Live), timeline slider, and play/pause controls
