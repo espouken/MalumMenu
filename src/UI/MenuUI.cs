@@ -5,9 +5,9 @@ using System.Linq;
 using HarmonyLib;
 
 namespace MalumMenu;
+
 public class MenuUI : MonoBehaviour
 {
-
     public List<GroupInfo> groups = [];
     private bool isDragging = false;
     private Rect windowRect = new(10, 10, 300, 500);
@@ -16,14 +16,12 @@ public class MenuUI : MonoBehaviour
     public static bool isPanicked = false;
     public int selectedTab;
 
-    // Styles
     private GUIStyle submenuButtonStyle;
     public GUIStyle tabTitleStyle;
     public GUIStyle tabSubtitleStyle;
     public GUIStyle separatorStyle;
-    private float hue; // For RGB mode
+    private float hue;
 
-    // Create all groups (buttons) and their toggles on start
     private void Start()
     {
         groups.Add(new GroupInfo("Player", false, [
@@ -45,9 +43,11 @@ public class MenuUI : MonoBehaviour
             new ToggleInfo(" No Shadows", () => CheatToggles.fullBright, x => CheatToggles.fullBright = x),
             new ToggleInfo(" Show Task Arrows", () => CheatToggles.showTaskArrows, x => CheatToggles.showTaskArrows = x),
             new ToggleInfo(" Reveal Votes", () => CheatToggles.revealVotes, x => CheatToggles.revealVotes = x),
-            new ToggleInfo(" More Lobby Info", () => CheatToggles.moreLobbyInfo, x => CheatToggles.moreLobbyInfo = x)
+            new ToggleInfo(" More Lobby Info", () => CheatToggles.moreLobbyInfo, x => CheatToggles.moreLobbyInfo = x),
+            new ToggleInfo(" Event Logger", () => CheatToggles.eventLogger, x => { CheatToggles.eventLogger = x; if (MalumMenu.consoleUI != null) MalumMenu.consoleUI.isVisible = x; })
         ], [
             new SubmenuInfo("Camera", false, [
+
                 new ToggleInfo(" Zoom Out", () => CheatToggles.zoomOut, x => CheatToggles.zoomOut = x),
                 new ToggleInfo(" Spectate", () => CheatToggles.spectate, x => CheatToggles.spectate = x),
                 new ToggleInfo(" Freecam", () => CheatToggles.freecam, x => CheatToggles.freecam = x)
@@ -68,6 +68,20 @@ public class MenuUI : MonoBehaviour
                 new ToggleInfo(" Impostors", () => CheatToggles.mapImps, x => CheatToggles.mapImps = x),
                 new ToggleInfo(" Ghosts", () => CheatToggles.mapGhosts, x => CheatToggles.mapGhosts = x),
                 new ToggleInfo(" Color-based", () => CheatToggles.colorBasedMap, x => CheatToggles.colorBasedMap = x)
+            ]),
+
+            new SubmenuInfo("Radar", false, [
+                new ToggleInfo(" Enable Radar", () => CheatToggles.radarEnabled, x => CheatToggles.radarEnabled = x),
+                new ToggleInfo(" Crewmates", () => CheatToggles.radarCrew, x => CheatToggles.radarCrew = x),
+                new ToggleInfo(" Impostors", () => CheatToggles.radarImps, x => CheatToggles.radarImps = x),
+                new ToggleInfo(" Ghosts", () => CheatToggles.radarGhosts, x => CheatToggles.radarGhosts = x),
+                new ToggleInfo(" Dead Bodies", () => CheatToggles.radarBodies, x => CheatToggles.radarBodies = x),
+                new ToggleInfo(" Color-based", () => CheatToggles.radarColorBased, x => CheatToggles.radarColorBased = x),
+                new ToggleInfo(" Show Map", () => CheatToggles.radarShowMap, x => CheatToggles.radarShowMap = x),
+                new ToggleInfo(" Show Kills", () => CheatToggles.radarShowKills, x => CheatToggles.radarShowKills = x),
+                new ToggleInfo(" Show Vents", () => CheatToggles.radarShowVents, x => CheatToggles.radarShowVents = x),
+                new ToggleInfo(" Show Tasks", () => CheatToggles.radarShowTasks, x => CheatToggles.radarShowTasks = x),
+                new ToggleInfo(" Show Shapeshift", () => CheatToggles.radarShowShapeshift, x => CheatToggles.radarShowShapeshift = x)
             ])
 
         ]));
@@ -128,6 +142,7 @@ public class MenuUI : MonoBehaviour
         groups.Add(new GroupInfo("Ship", false, [
             new ToggleInfo(" Unfixable Lights", () => CheatToggles.unfixableLights,
                 x => CheatToggles.unfixableLights = x),
+            new ToggleInfo(" Auto-Fix Lights On Use", () => CheatToggles.autoFixLights, x => CheatToggles.autoFixLights = x),
             new ToggleInfo(" Report Body", () => CheatToggles.reportBody, x => CheatToggles.reportBody = x),
             new ToggleInfo(" Close Meeting", () => CheatToggles.closeMeeting, x => CheatToggles.closeMeeting = x),
             new ToggleInfo(" Auto-Open Doors On Use", () => CheatToggles.autoOpenDoorsOnUse, x => CheatToggles.autoOpenDoorsOnUse = x)
@@ -155,12 +170,6 @@ public class MenuUI : MonoBehaviour
             new ToggleInfo(" Enable Chat", () => CheatToggles.alwaysChat, x => CheatToggles.alwaysChat = x),
             new ToggleInfo(" Unlock Textbox", () => CheatToggles.chatJailbreak, x => CheatToggles.chatJailbreak = x)
         ], []));
-
-        // Console is temporarly disabled until we implement some features for it
-
-        //groups.Add(new GroupInfo("Console", false, new List<ToggleInfo>() {
-        //    new ToggleInfo(" ConsoleUI", () => MalumMenu.consoleUI.isVisible, x => MalumMenu.consoleUI.isVisible = x),
-        //}, new List<SubmenuInfo>()));
 
         groups.Add(new GroupInfo("Host-Only", false,
             [
@@ -228,8 +237,6 @@ public class MenuUI : MonoBehaviour
     {
         if (!MalumMenu.useHorizontalUI.Value && (GUI.skin.toggle.fontSize == 13 || GUI.skin.toggle.fontSize == 0))
         {
-            //Debug.Log($"current style: {GUI.skin.button.fontSize}, {GUI.skin.toggle.fontSize}, {GUI.skin.button.normal.textColor}, {GUI.skin.button.normal.background}");
-
             GUI.skin.toggle.fontSize = GUI.skin.button.fontSize = 20;
         }
         else if (MalumMenu.useHorizontalUI.Value && GUI.skin.toggle.fontSize != 13)
@@ -260,7 +267,6 @@ public class MenuUI : MonoBehaviour
             alignment = TextAnchor.MiddleLeft,
         };
 
-        // Style for the vertical separator line between tab selector buttons and the actual tab content
         separatorStyle = new GUIStyle(GUI.skin.box)
         {
             normal = { background = Texture2D.whiteTexture },
@@ -270,23 +276,18 @@ public class MenuUI : MonoBehaviour
         };
     }
 
-    private void Update(){
+    private void Update()
+    {
 
         if (Input.GetKeyDown(Utils.stringToKeycode(MalumMenu.menuKeybind.Value)))
         {
-            //Enable-disable GUI with DELETE key
             isGUIActive = !isGUIActive;
-
-            //Also teleport the window to the mouse for immediate use
-            Vector2 mousePosition = Input.mousePosition;
-            windowRect.position = new Vector2(mousePosition.x, Screen.height - mousePosition.y);
-            horizontalWindowRect.position = new Vector2(mousePosition.x, Screen.height - mousePosition.y);
         }
 
         if (CheatToggles.RGBMode)
         {
-            hue += Time.deltaTime * 0.3f; // Adjust speed of color change, higher multiplier = faster
-            if (hue > 1f) hue -= 1f; // Loop hue back to 0 when it exceeds 1
+            hue += Time.deltaTime * 0.3f;
+            if (hue > 1f) hue -= 1f;
         }
 
         if (CheatToggles.panic)
@@ -296,25 +297,19 @@ public class MenuUI : MonoBehaviour
             CheatToggles.panic = false;
         }
 
-        //Passive cheats are always on to avoid problems
-        //CheatToggles.unlockFeatures = CheatToggles.freeCosmetics = CheatToggles.avoidBans = true;
-
-        if(!Utils.isPlayer){
+        if (!Utils.isPlayer)
+        {
             CheatToggles.changeRole = CheatToggles.killAll = CheatToggles.telekillPlayer = CheatToggles.killAllCrew = CheatToggles.killAllImps = CheatToggles.teleportCursor = CheatToggles.teleportPlayer = CheatToggles.spectate = CheatToggles.freecam = CheatToggles.killPlayer = CheatToggles.protectPlayer = false;
         }
 
-        if(!Utils.isHost && !Utils.isFreePlay){
+        if (!Utils.isHost && !Utils.isFreePlay)
+        {
             CheatToggles.killAll = CheatToggles.telekillPlayer = CheatToggles.killAllCrew = CheatToggles.killAllImps = CheatToggles.killPlayer = CheatToggles.protectPlayer = CheatToggles.ejectPlayer = CheatToggles.zeroKillCd = CheatToggles.killAnyone = CheatToggles.killVanished = CheatToggles.forceStartGame = CheatToggles.noGameEnd = CheatToggles.skipMeeting = CheatToggles.callMeeting = false;
         }
 
-        //Host-only cheats are turned off if LocalPlayer is not the game's host
-        //if(!CheatChecks.isHost){
-        //    CheatToggles.voteImmune = CheatToggles.godMode = CheatToggles.impostorHack = CheatToggles.evilVote = false;
-        //}
-
-        //Some cheats only work if the ship is present, so they are turned off if it is not
-        if(!Utils.isShip){
-            CheatToggles.revive = CheatToggles.sabotageMap = CheatToggles.unfixableLights = CheatToggles.completeMyTasks = CheatToggles.kickVents = CheatToggles.reportBody = CheatToggles.ejectPlayer = CheatToggles.closeMeeting = CheatToggles.skipMeeting = CheatToggles.callMeeting = CheatToggles.reactorSab = CheatToggles.oxygenSab = CheatToggles.commsSab = CheatToggles.elecSab = CheatToggles.mushSab = CheatToggles.closeAllDoors = CheatToggles.openAllDoors = CheatToggles.spamCloseAllDoors = CheatToggles.spamOpenAllDoors = CheatToggles.autoOpenDoorsOnUse = CheatToggles.mushSpore = CheatToggles.animShields = CheatToggles.animAsteroids = CheatToggles.animEmptyGarbage = CheatToggles.animScan = CheatToggles.animCamsInUse = false;
+        if (!Utils.isShip)
+        {
+            CheatToggles.revive = CheatToggles.sabotageMap = CheatToggles.unfixableLights = CheatToggles.completeMyTasks = CheatToggles.kickVents = CheatToggles.reportBody = CheatToggles.ejectPlayer = CheatToggles.closeMeeting = CheatToggles.skipMeeting = CheatToggles.callMeeting = CheatToggles.reactorSab = CheatToggles.oxygenSab = CheatToggles.commsSab = CheatToggles.elecSab = CheatToggles.mushSab = CheatToggles.closeAllDoors = CheatToggles.openAllDoors = CheatToggles.spamCloseAllDoors = CheatToggles.spamOpenAllDoors = CheatToggles.mushSpore = CheatToggles.animShields = CheatToggles.animAsteroids = CheatToggles.animEmptyGarbage = CheatToggles.animScan = CheatToggles.animCamsInUse = false;
         }
     }
 
@@ -325,7 +320,6 @@ public class MenuUI : MonoBehaviour
 
         InitStyles();
 
-        // Only change the window height while the user is not dragging it, or else dragging breaks
         if (!isDragging)
         {
             var windowHeight = CalculateWindowHeight();
@@ -334,7 +328,7 @@ public class MenuUI : MonoBehaviour
 
         if (CheatToggles.RGBMode)
         {
-            GUI.backgroundColor = Color.HSVToRGB(hue, 1f, 1f); // Set background color based on hue
+            GUI.backgroundColor = Color.HSVToRGB(hue, 1f, 1f);
         }
         else
         {
@@ -381,12 +375,12 @@ public class MenuUI : MonoBehaviour
             {
                 group.isExpanded = !group.isExpanded;
                 groups[groupId] = group;
-                CloseAllGroupsExcept(groupId); // Close all other groups when one is expanded
+                CloseAllGroupsExcept(groupId);
             }
             currentYPosition += groupSpacing;
 
             if (!group.isExpanded) continue;
-            // Render direct toggles for the group
+
             foreach (var toggle in group.toggles)
             {
                 bool currentState = toggle.getState();
@@ -416,14 +410,15 @@ public class MenuUI : MonoBehaviour
                         GUI.Label(new Rect(20, currentYPosition + 10, 250, 20), $"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.Speed} {(Utils.isSpeedDefault() ? "(Default)" : "")}");
                         currentYPosition += toggleSpacing;
                     }
-                }catch (NullReferenceException) {}
+                }
+                catch (NullReferenceException) { }
             }
 
             for (int submenuId = 0; submenuId < group.submenus.Count; submenuId++)
             {
                 var submenu = group.submenus[submenuId];
 
-                // Add a button for each submenu and toggle its expansion state when clicked
+
                 if (GUI.Button(new Rect(20, currentYPosition, 260, 30), submenu.name, submenuButtonStyle))
                 {
                     submenu.isExpanded = !submenu.isExpanded;
@@ -436,7 +431,7 @@ public class MenuUI : MonoBehaviour
                 currentYPosition += submenuSpacing;
 
                 if (!submenu.isExpanded) continue;
-                // Show all the toggles in the expanded submenu
+
                 foreach (var toggle in submenu.toggles)
                 {
                     bool currentState = toggle.getState();
@@ -457,33 +452,30 @@ public class MenuUI : MonoBehaviour
             _ => isDragging
         };
 
-        GUI.DragWindow(); //Allows dragging the GUI window with mouse
+        GUI.DragWindow();
     }
 
-
-    // Dynamically calculate the window's height depending on
-    // The number of toggles & group expansion
     private int CalculateWindowHeight()
     {
-        int totalHeight = 70; // Base height for the window
-        int groupHeight = 50; // Height for each group title
-        int toggleHeight = 30; // Height for each toggle
-        int submenuHeight = 40; // Height for each submenu title
+        int totalHeight = 70;
+        int groupHeight = 50;
+        int toggleHeight = 30;
+        int submenuHeight = 40;
 
         foreach (GroupInfo group in groups)
         {
-            totalHeight += groupHeight; // Always add height for the group title
+            totalHeight += groupHeight;
 
             if (!group.isExpanded) continue;
-            totalHeight += group.toggles.Count * toggleHeight; // Add height for toggles in the group
+            totalHeight += group.toggles.Count * toggleHeight;
 
             foreach (SubmenuInfo submenu in group.submenus)
             {
-                totalHeight += submenuHeight; // Always add height for the submenu title
+                totalHeight += submenuHeight;
 
                 if (submenu.isExpanded)
                 {
-                    totalHeight += submenu.toggles.Count * toggleHeight; // Add height for toggles in the expanded submenu
+                    totalHeight += submenu.toggles.Count * toggleHeight;
                 }
             }
         }
@@ -491,8 +483,6 @@ public class MenuUI : MonoBehaviour
         return totalHeight;
     }
 
-
-    // Closes all expanded groups other than indexToKeepOpen
     private void CloseAllGroupsExcept(int indexToKeepOpen)
     {
         for (int i = 0; i < groups.Count; i++)
@@ -519,7 +509,6 @@ public class MenuUI : MonoBehaviour
     {
         GUILayout.BeginHorizontal();
 
-        // Left tab selector (15% width)
         GUILayout.BeginVertical(GUILayout.Width(horizontalWindowRect.width * 0.15f));
         for (var i = 0; i < groups.Count; i++)
         {
@@ -528,14 +517,11 @@ public class MenuUI : MonoBehaviour
         }
         GUILayout.EndVertical();
 
-        // Invisible vertical separator line to create some space between the tab selector and the content
         GUILayout.Box("", separatorStyle, GUILayout.Width(1f), GUILayout.ExpandHeight(true));
         GUILayout.Box("", GUIStyle.none, GUILayout.Width(10f), GUILayout.ExpandHeight(true));
 
-        // Right tab content and controls (85% width)
         GUILayout.BeginVertical(GUILayout.Width(horizontalWindowRect.width * 0.85f));
 
-        // Tab-specific content
         if (selectedTab >= 0 && selectedTab < groups.Count)
         {
             GUILayout.Label(groups[selectedTab].name, tabTitleStyle);
@@ -545,15 +531,9 @@ public class MenuUI : MonoBehaviour
         GUILayout.EndVertical();
         GUILayout.EndHorizontal();
 
-        // Make the window draggable
         GUI.DragWindow();
     }
 
-    /// <summary>
-    /// Gets the hardcoded number of left column submenus for each tab
-    /// </summary>
-    /// <param name="groupId">The group (tab) index</param>
-    /// <returns>The number of left column submenus</returns>
     private int GetLeftSubmenuCount(int groupId)
     {
         var name = groups[groupId].name;
@@ -604,13 +584,13 @@ public class MenuUI : MonoBehaviour
                     Utils.snapSpeedToDefault(0.05f);
                     GUILayout.Label($"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.Speed} {(Utils.isSpeedDefault() ? "(Default)" : "")}");
                 }
-            }catch (NullReferenceException) {}
+            }
+            catch (NullReferenceException) { }
         }
 
         var desiredLeft = GetLeftSubmenuCount(groupId);
         var leftCount = Mathf.Clamp(desiredLeft, 0, count);
 
-        // Left column submenus
         var leftSubmenus = group.submenus.GetRange(0, leftCount);
         foreach (var submenu in leftSubmenus)
         {
@@ -619,7 +599,6 @@ public class MenuUI : MonoBehaviour
         }
         GUILayout.EndVertical();
 
-        // Right column submenus (if any)
         GUILayout.BeginVertical();
         if (count > leftCount)
         {

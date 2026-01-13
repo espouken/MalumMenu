@@ -18,7 +18,7 @@ namespace MalumMenu;
 
 public static class Utils
 {
-    // Useful for getting full lists of all the Among Us cosmetics IDs
+    
     public static ReferenceDataManager referenceDataManager = DestroyableSingleton<ReferenceDataManager>.Instance;
     public static SabotageSystemType SabotageSystem => ShipStatus.Instance.Systems[SystemTypes.Sabotage].Cast<SabotageSystemType>();
     public static bool isShip => ShipStatus.Instance;
@@ -46,22 +46,22 @@ public static class Utils
     public const float DefaultSpeed = 2.5f;
     public const float DefaultGhostSpeed = 3f;
 
-    /// <summary>
-    /// Check if LocalPlayer's speed is the default
-    /// </summary>
-    /// <param name="forGhost">Check ghost speed instead of normal speed</param>
-    /// <returns>True if speed is the default, false otherwise</returns>
+    
+    
+    
+    
+    
     public static bool isSpeedDefault(bool forGhost = false)
     {
         return forGhost ? Mathf.Approximately(PlayerControl.LocalPlayer.MyPhysics.GhostSpeed, DefaultGhostSpeed) :
             Mathf.Approximately(PlayerControl.LocalPlayer.MyPhysics.Speed, DefaultSpeed);
     }
 
-    /// <summary>
-    /// Snap LocalPlayer's speed to the default if within snapRange
-    /// </summary>
-    /// <param name="snapRange">The range within which to snap the speed</param>
-    /// <param name="forGhost">Snap ghost speed instead of normal speed</param>
+    
+    
+    
+    
+    
     public static void snapSpeedToDefault(float snapRange, bool forGhost = false)
     {
         if (forGhost)
@@ -76,7 +76,7 @@ public static class Utils
         }
     }
 
-    // Get ClientData by PlayerControl
+    
     public static ClientData getClientByPlayer(PlayerControl player)
     {
         try
@@ -90,7 +90,7 @@ public static class Utils
         }
     }
 
-    // Get ClientData.Id by PlayerControl
+    
     public static int getClientIdByPlayer(PlayerControl player)
     {
         if (player == null) return -1;
@@ -98,7 +98,7 @@ public static class Utils
         return client == null ? -1 : client.Id;
     }
 
-    // Check if player is currently vanished
+    
     public static bool isVanished(NetworkedPlayerInfo playerInfo)
     {
         PhantomRole phantomRole = playerInfo.Role as PhantomRole;
@@ -110,7 +110,7 @@ public static class Utils
         return false;
     }
 
-    // Custom isValidTarget method for cheats
+    
     public static bool isValidTarget(NetworkedPlayerInfo target)
     {
         var killAnyoneRequirements = target && !target.Disconnected && target.Object.Visible && target.PlayerId != PlayerControl.LocalPlayer.PlayerId && target.Role && target.Object;
@@ -134,19 +134,19 @@ public static class Utils
         return playerDataList;
     }
 
-    // Adjusts HUD resolution
-    // Used to fix UI problems when zooming out
+    
+    
     public static void adjustResolution() {
         ResolutionManager.ResolutionChanged.Invoke((float)Screen.width / Screen.height, Screen.width, Screen.height, Screen.fullScreen);
     }
 
-    // Get RoleBehaviour from a RoleType
+    
     public static RoleBehaviour getBehaviourByRoleType(RoleTypes roleType)
     {
         return RoleManager.Instance.AllRoles.ToArray().First(r => r.Role == roleType);
     }
 
-    // Kill any player using RPC calls
+    
     public static void murderPlayer(PlayerControl target, MurderResultFlags result)
     {
         if (isFreePlay){
@@ -165,7 +165,7 @@ public static class Utils
         }
     }
 
-    // Report bodies using RPC calls
+    
     public static void reportDeadBody(NetworkedPlayerInfo playerData)
     {
 
@@ -184,7 +184,7 @@ public static class Utils
     }
 
 
-    // Complete all of LocalPlayer's tasks using RPC calls
+    
     public static void completeMyTasks()
     {
 
@@ -234,7 +234,7 @@ public static class Utils
         }
     }
 
-    // Open Chat UI
+    
     public static void openChat()
     {
         if (!DestroyableSingleton<HudManager>.Instance.Chat.IsOpenOrOpening){
@@ -249,7 +249,7 @@ public static class Utils
 
     }
 
-    // Draw a tracer line between two 2 GameObjects
+    
     public static void drawTracer(GameObject sourceObject, GameObject targetObject, Color color)
     {
         var lineRenderer = sourceObject.GetComponent<LineRenderer>();
@@ -262,7 +262,7 @@ public static class Utils
         lineRenderer.SetVertexCount(2);
         lineRenderer.SetWidth(0.02F, 0.02F);
 
-        // I just picked an already existing material from the game
+        
         Material material = DestroyableSingleton<HatManager>.Instance.PlayerMaterial;
 
         lineRenderer.material = material;
@@ -272,7 +272,7 @@ public static class Utils
         lineRenderer.SetPosition(1, targetObject.transform.position);
     }
 
-    // Return if the ChatUI should be active or not
+    
     public static bool chatUiActive()
     {
         try{
@@ -282,7 +282,7 @@ public static class Utils
         }
     }
 
-    // Close Chat UI
+    
     public static void closeChat()
     {
         if (DestroyableSingleton<HudManager>.Instance.Chat.IsOpenOrOpening){
@@ -290,7 +290,7 @@ public static class Utils
         }
     }
 
-    // Get the distance between two players as a float
+    
     public static float getDistanceFrom(PlayerControl target, PlayerControl source = null){
 
         if (source.IsNull()){
@@ -304,7 +304,7 @@ public static class Utils
 
     }
 
-    // Returns a list of all the players in the game ordered from closest to farthest (from LocalPlayer by default)
+    
     public static System.Collections.Generic.List<PlayerControl> getPlayersSortedByDistance(PlayerControl source = null){
 
         if (source.IsNull()){
@@ -330,25 +330,26 @@ public static class Utils
         return outputList.Count <= 0 ? null : outputList;
     }
 
-    // Gets current map ID
+    
     public static byte getCurrentMapID()
     {
-        // If playing the tutorial
+        
         if (isFreePlay)
         {
             return (byte)AmongUsClient.Instance.TutorialMapId;
         }
 
-        // Works for local/online games
+        
+        if (GameOptionsManager.Instance == null || GameOptionsManager.Instance.currentGameOptions == null) return 0;
         return GameOptionsManager.Instance.currentGameOptions.MapId;
     }
 
-    // Get SystemType of the room the player is currently in
+    
     public static SystemTypes getCurrentRoom(){
         return HudManager.Instance.roomTracker.LastRoom.RoomId;
     }
 
-    // Fancy colored ping text
+    
     public static string getColoredPingText(int ping)
     {
         return ping switch
@@ -359,39 +360,39 @@ public static class Utils
         };
     }
 
-    // Get a UnityEngine.KeyCode from a string
+    
     public static KeyCode stringToKeycode(string keyCodeStr){
 
-        if(!string.IsNullOrEmpty(keyCodeStr)) // Empty strings are automatically invalid
+        if(!string.IsNullOrEmpty(keyCodeStr)) 
         {
             try
             {
-                // Case-insensitive parse of UnityEngine.KeyCode to check if string is validssss
+                
                 KeyCode keyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), keyCodeStr, true);
 
                 return keyCode;
             }catch{}
         }
 
-        return KeyCode.Delete; // If string is invalid, return Delete as the default key
+        return KeyCode.Delete; 
     }
 
-    // Get a platform type from a string
+    
     public static bool stringToPlatformType(string platformStr, out Platforms? platform)
     {
-        if (!string.IsNullOrEmpty(platformStr)) // Empty strings are automatically invalid
+        if (!string.IsNullOrEmpty(platformStr)) 
         {
             try
             {
-                // Case-insensitive parse of Platforms from string (if it valid)
+                
                 platform = (Platforms)Enum.Parse(typeof(Platforms), platformStr, true);
 
-                return true; // If platform type is valid, return false
+                return true; 
             }catch{}
         }
 
         platform = null;
-        return false; // If platform type is invalid, return false
+        return false; 
     }
 
     public static string PlatformTypeToString(Platforms platform)
@@ -412,8 +413,8 @@ public static class Utils
         };
     }
 
-    // Get the string name for a chosen player's role
-    // String are automatically translated
+    
+    
     public static string getRoleName(NetworkedPlayerInfo playerData)
     {
         var translatedRole = DestroyableSingleton<TranslationController>.Instance.GetString(playerData.Role.StringName, Il2CppSystem.Array.Empty<Il2CppSystem.Object>());
@@ -430,7 +431,7 @@ public static class Utils
         return translatedRole;
     }
 
-    // Get the appropriate nametag for a player (seeRoles cheat)
+    
     public static string GetNameTag(NetworkedPlayerInfo playerInfo, string playerName, bool isChat = false)
     {
         var nameTag = playerName;
@@ -443,8 +444,8 @@ public static class Utils
         var level = playerInfo.PlayerLevel + 1;
         var platform = "Unknown";
         try { platform = PlatformTypeToString(player.PlatformData.Platform); } catch { }
-        //var puid = player.ProductUserId;
-        //var friendcode = player.FriendCode;
+        
+        
         var roleColor = ColorUtility.ToHtmlStringRGB(playerInfo.Role.TeamColor);
 
         var hostString = player == host ? "Host - " : "";
@@ -515,14 +516,14 @@ public static class Utils
 
     public static string GetRandomName()
     {
-        // Randomize 1-12 characters long names
+        
         var length = UnityEngine.Random.Range(1, 13);
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         return new string(Enumerable.Repeat(chars, length).Select(s => s[UnityEngine.Random.Range(0, s.Length)]).ToArray());
     }
 
-    // Show custom popup ingame
-    // Found here: https://github.com/NuclearPowered/Reactor/blob/6eb0bf19c30733b78532dada41db068b2b247742/Reactor/Networking/Patches/HttpPatches.cs
+    
+    
     public static void showPopup(string text)
     {
         var popup = Object.Instantiate(DiscordManager.Instance.discordPopup, Camera.main!.transform);
@@ -541,8 +542,8 @@ public static class Utils
         DestroyableSingleton<DisconnectPopup>.Instance.ShowCustom(text);
     }
 
-    // Load sprites and textures from manifest resources
-    // Found here: https://github.com/Loonie-Toons/TOHE-Restored/blob/TOHE/Modules/Utils.cs
+    
+    
     public static Dictionary<string, Sprite> CachedSprites = new();
     public static Sprite LoadSprite(string path, float pixelsPerUnit = 1f)
     {
@@ -551,6 +552,8 @@ public static class Utils
             if (CachedSprites.TryGetValue(path + pixelsPerUnit, out var sprite)) return sprite;
 
             Texture2D texture = LoadTextureFromResources(path);
+            if (texture == null) return null;
+
             sprite = Sprite.Create(texture, new(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), pixelsPerUnit);
             sprite.hideFlags |= HideFlags.HideAndDontSave | HideFlags.DontSaveInEditor;
 
@@ -558,15 +561,38 @@ public static class Utils
         }
         catch
         {
-            Debug.LogError($"Failed to read Texture: {path}");
+            Debug.LogError($"Failed to load Sprite: {path}");
         }
         return null;
     }
+
     public static Texture2D LoadTextureFromResources(string path)
     {
         try
         {
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path);
+            var assembly = Assembly.GetExecutingAssembly();
+            
+            
+            var stream = assembly.GetManifestResourceStream(path);
+
+            
+            if (stream == null)
+            {
+                var resourceNames = assembly.GetManifestResourceNames();
+                var foundResource = resourceNames.FirstOrDefault(r => r.EndsWith(path) || r.Contains($".{path}"));
+                
+                if (!string.IsNullOrEmpty(foundResource))
+                {
+                    stream = assembly.GetManifestResourceStream(foundResource);
+                    Debug.Log($"[MalumMenu] Found resource: {foundResource} (requested: {path})");
+                }
+                else
+                {
+                    Debug.LogWarning($"[MalumMenu] Resource not found: {path}. Available resources: {string.Join(", ", resourceNames)}");
+                    return null;
+                }
+            }
+
             var texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
             using MemoryStream ms = new();
 
@@ -574,16 +600,16 @@ public static class Utils
             ImageConversion.LoadImage(texture, ms.ToArray(), false);
             return texture;
         }
-        catch
+        catch (Exception e)
         {
-            Debug.LogError($"Failed to read Texture: {path}");
+            Debug.LogError($"[MalumMenu] Failed to read Texture: {path}. Error: {e.Message}");
         }
         return null;
     }
 
     public static void OpenConfigFile()
     {
-        // Open the config file in the default text editor (doesn't work on Linux with Proton)
+        
         var configFilePath = Path.Combine(Paths.ConfigPath, "MalumMenu.cfg");
 
         if (File.Exists(configFilePath))
@@ -631,8 +657,8 @@ public static class Utils
         CheatToggles.DisableAll();
         ModManager.Instance.ModStamp.enabled = false;
 
-        // Create a PanicCleaner to unpatch Harmony in the next frame
-        // This allows some patches to run for a last time and finish properly
+        
+        
         PanicCleaner.Create();
     }
 }

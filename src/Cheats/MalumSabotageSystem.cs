@@ -14,7 +14,7 @@ public static class MalumSabotageSystem
         {
             case 2:
             {
-                // Polus uses SystemTypes.Laboratory instead of SystemTypes.Reactor
+                
 
                 var labSys = shipStatus.Systems[SystemTypes.Laboratory].Cast<ReactorSystemType>();
 
@@ -29,17 +29,17 @@ public static class MalumSabotageSystem
             }
             case 4:
             {
-                // Airship uses HeliSabotageSystem to sabotage reactor
+                
 
                 var heliSys = shipStatus.Systems[SystemTypes.HeliSabotage].Cast<HeliSabotageSystem>();
 
                 if (CheatToggles.reactorSab != reactorSab){
 
                     if (reactorSab){
-                        shipStatus.RpcUpdateSystem(SystemTypes.HeliSabotage, 16 | 0); // Repair
+                        shipStatus.RpcUpdateSystem(SystemTypes.HeliSabotage, 16 | 0); 
                         shipStatus.RpcUpdateSystem(SystemTypes.HeliSabotage, 16 | 1);
                     }else{
-                        shipStatus.RpcUpdateSystem(SystemTypes.HeliSabotage, 128); // Sabotage
+                        shipStatus.RpcUpdateSystem(SystemTypes.HeliSabotage, 128); 
                     }
 
                     reactorSab = CheatToggles.reactorSab;
@@ -50,7 +50,7 @@ public static class MalumSabotageSystem
             }
             default:
             {
-                // Other maps behave normally
+                
 
                 var reactorSys = shipStatus.Systems[SystemTypes.Reactor].Cast<ReactorSystemType>();
 
@@ -68,7 +68,7 @@ public static class MalumSabotageSystem
 
     public static void HandleOxygen(ShipStatus shipStatus, byte mapId)
     {
-        if (mapId != 4 && mapId != 2 && mapId != 5) { // Maps without Oxygen system: Airship, MiraHQ, Fungle
+        if (mapId != 4 && mapId != 2 && mapId != 5) { 
 
             var oxygenSys = shipStatus.Systems[SystemTypes.LifeSupp].Cast<LifeSuppSystemType>();
 
@@ -84,7 +84,7 @@ public static class MalumSabotageSystem
 
         }
 
-        // Notify the player if they try to activate the cheat in a map without an oxygen system
+        
         if (!CheatToggles.oxygenSab) return;
         HudManager.Instance.Notifier.AddDisconnectMessage("Oxygen system not present on this map");
         CheatToggles.oxygenSab = false;
@@ -92,17 +92,17 @@ public static class MalumSabotageSystem
 
     public static void HandleComms(ShipStatus shipStatus, byte mapId)
     {
-        if (mapId is 1 or 5) { // Fungle & Skeld use HqHudSystemType instead of HudOverrideSystemType
+        if (mapId is 1 or 5) { 
 
             var hqCommsSys = shipStatus.Systems[SystemTypes.Comms].Cast<HqHudSystemType>();
 
             if (CheatToggles.commsSab != commsSab){
 
                 if (commsSab){
-                    shipStatus.RpcUpdateSystem(SystemTypes.Comms, 16 | 0); // Repair
+                    shipStatus.RpcUpdateSystem(SystemTypes.Comms, 16 | 0); 
                     shipStatus.RpcUpdateSystem(SystemTypes.Comms, 16 | 1);
                 }else{
-                    shipStatus.RpcUpdateSystem(SystemTypes.Comms, 128); // Sabotage
+                    shipStatus.RpcUpdateSystem(SystemTypes.Comms, 128); 
                 }
 
                 commsSab = CheatToggles.commsSab;
@@ -111,7 +111,7 @@ public static class MalumSabotageSystem
 
             CheatToggles.commsSab = commsSab = hqCommsSys.IsActive;
 
-        }else{ // Other maps behave normally
+        }else{ 
 
             var commsSys = shipStatus.Systems[SystemTypes.Comms].Cast<HudOverrideSystemType>();
 
@@ -128,17 +128,17 @@ public static class MalumSabotageSystem
 
     public static void HandleElectrical(ShipStatus shipStatus, byte mapId)
     {
-        if (mapId != 5) { // Fungle has no electrical system
+        if (mapId != 5) { 
 
             var elecSys = shipStatus.Systems[SystemTypes.Electrical].Cast<SwitchSystem>();
 
-            // Handle unfixableLights cheat first to avoid the cheats messing with each other
+            
             HandleUnfixLights(shipStatus);
 
             if (CheatToggles.elecSab != elecSab){
                 if (elecSab){
 
-                    // Repair
+                    
 
                     for (var i = 0; i < 5; i++)
                     {
@@ -152,9 +152,9 @@ public static class MalumSabotageSystem
 
                 }else{
 
-                    // Sabotage
+                    
 
-                    CheatToggles.unfixableLights = false; // Replace unfixableLights cheat if it is already active
+                    CheatToggles.unfixableLights = false; 
 
                     byte b = 4;
                     for (var i = 0; i < 5; i++)
@@ -178,7 +178,7 @@ public static class MalumSabotageSystem
 
         }
 
-        // Notify the player if they try to activate the cheat in a map without an oxygen system
+        
         if (!CheatToggles.elecSab && !CheatToggles.unfixableLights) return;
         HudManager.Instance.Notifier.AddDisconnectMessage("Electrical system not present on this map");
         CheatToggles.elecSab = CheatToggles.unfixableLights = false;
@@ -187,15 +187,15 @@ public static class MalumSabotageSystem
     public static void HandleUnfixLights(ShipStatus shipStatus)
     {
         if (CheatToggles.unfixableLights == unfixableLights) return;
-        // Apparently most values you put for amount in RpcUpdateSystem will break lights completely
-        // They are unfixable through regular means (toggling switches)
-        // They can only be repaired by repeating RpcUpdateSystem with the same amount
+        
+        
+        
 
         if (!unfixableLights){
             CheatToggles.elecSab = false;
         }
 
-        shipStatus.RpcUpdateSystem(SystemTypes.Electrical, 69); // Repair & Sabotage
+        shipStatus.RpcUpdateSystem(SystemTypes.Electrical, 69); 
 
         unfixableLights = CheatToggles.unfixableLights;
     }
@@ -203,22 +203,22 @@ public static class MalumSabotageSystem
     public static void HandleMushMix(ShipStatus shipStatus, byte mapId)
     {
         if (!CheatToggles.mushSab) return;
-        if (mapId == 5){ // MushroomMixup only works on Fungle
+        if (mapId == 5){ 
 
-            shipStatus.RpcUpdateSystem(SystemTypes.MushroomMixupSabotage, 1); // Sabotage
+            shipStatus.RpcUpdateSystem(SystemTypes.MushroomMixupSabotage, 1); 
 
         } else {
 
-            // Notify the player if they try to activate the cheat in a map without mushrooms
+            
 
             HudManager.Instance.Notifier.AddDisconnectMessage("Mushrooms not present on this map");
         }
 
-        // Repair (bugged)
-        // var mushSys = shipStatus.Systems[SystemTypes.MushroomMixupSabotage].Cast<MushroomMixupSabotageSystem>();
-        // mushSys.Deteriorate(mushSys.currentSecondsUntilHeal);
+        
+        
+        
 
-        CheatToggles.mushSab = false; //Button behaviour
+        CheatToggles.mushSab = false; 
     }
 
     public static void HandleSpores(FungleShipStatus shipStatus, byte mapId)

@@ -12,13 +12,13 @@ public static class MalumCheats
     {
         if (!CheatToggles.closeMeeting) return;
 
-        if (Utils.isMeeting){ // Closes MeetingHud window if it's open
+        if (Utils.isMeeting){ 
 
-            // Destroy MeetingHud window gameobject
+            
             MeetingHud.Instance.DespawnOnDestroy = false;
             Object.Destroy(MeetingHud.Instance.gameObject);
 
-            // Gameplay must be reenabled
+            
             DestroyableSingleton<HudManager>.Instance.StartCoroutine(DestroyableSingleton<HudManager>.Instance.CoFadeFullScreen(Color.black, Color.clear, 0.2f, false));
             PlayerControl.LocalPlayer.SetKillTimer(GameManager.Instance.LogicOptions.GetKillCooldown());
             ShipStatus.Instance.EmergencyCooldown = GameManager.Instance.LogicOptions.GetEmergencyCooldown();
@@ -26,12 +26,12 @@ public static class MalumCheats
             DestroyableSingleton<HudManager>.Instance.SetHudActive(true);
             ControllerManager.Instance.CloseAndResetAll();
 
-        }else if (ExileController.Instance){ // Ends exile cutscene if it's playing
+        }else if (ExileController.Instance){ 
             ExileController.Instance.ReEnableGameplay();
             ExileController.Instance.WrapUp();
         }
 
-        CheatToggles.closeMeeting = false; // Button behaviour
+        CheatToggles.closeMeeting = false; 
     }
 
     public static void skipMeetingCheat()
@@ -88,10 +88,10 @@ public static class MalumCheats
     {
         if (CheatToggles.endlessVentTime){
 
-            // Makes vent time so incredibly long (float.MaxValue) so that it never ends
+            
             engineerRole.inVentTimeRemaining = float.MaxValue;
 
-        // Vent time is reset to normal value after the cheat is disabled
+        
         }else if (engineerRole.inVentTimeRemaining > engineerRole.GetCooldown()){
 
             engineerRole.inVentTimeRemaining = engineerRole.GetCooldown();
@@ -116,10 +116,10 @@ public static class MalumCheats
     {
         if (CheatToggles.endlessSsDuration){
 
-            // Makes shapeshift duration so incredibly long (float.MaxValue) so that it never ends
+            
             shapeshifterRole.durationSecondsRemaining = float.MaxValue;
 
-        // Shapeshift duration is reset to normal value after the cheat is disabled
+        
         }else if (shapeshifterRole.durationSecondsRemaining > GameManager.Instance.LogicOptions.GetRoleFloat(FloatOptionNames.ShapeshifterDuration)){
 
             shapeshifterRole.durationSecondsRemaining = GameManager.Instance.LogicOptions.GetRoleFloat(FloatOptionNames.ShapeshifterDuration);
@@ -136,10 +136,10 @@ public static class MalumCheats
 
         if (CheatToggles.endlessBattery){
 
-            // Makes vitals battery so incredibly long (float.MaxValue) so that it never ends
+            
             scientistRole.currentCharge = float.MaxValue;
 
-        // Battery charge is reset to normal value after the cheat is disabled
+        
         }else if (scientistRole.currentCharge > scientistRole.RoleCooldownValue){
 
             scientistRole.currentCharge = scientistRole.RoleCooldownValue;
@@ -167,10 +167,10 @@ public static class MalumCheats
 
         if (CheatToggles.endlessTracking){
 
-            // Makes vitals battery so incredibly long (float.MaxValue) so that it never ends
+            
             trackerRole.durationSecondsRemaining = float.MaxValue;
 
-        // Battery charge is reset to normal value after the cheat is disabled
+        
         }else if (trackerRole.durationSecondsRemaining > GameManager.Instance.LogicOptions.GetRoleFloat(FloatOptionNames.TrackerDuration)){
 
             trackerRole.durationSecondsRemaining = GameManager.Instance.LogicOptions.GetRoleFloat(FloatOptionNames.TrackerDuration);
@@ -185,11 +185,11 @@ public static class MalumCheats
 
     public static void useVentCheat(HudManager hudManager)
     {
-        // try-catch to prevent errors when role is null
+        
         try{
 
-			// Engineers & Impostors don't need this cheat so it is disabled for them
-			// Ghost venting causes issues so it is also disabled
+			
+			
 
 			if (!PlayerControl.LocalPlayer.Data.Role.CanVent && !PlayerControl.LocalPlayer.Data.IsDead){
 				hudManager.ImpostorVentButton.gameObject.SetActive(CheatToggles.useVents);
@@ -202,7 +202,7 @@ public static class MalumCheats
     {
         var currentMapID = Utils.getCurrentMapID();
 
-        // Handle all sabotage systems
+        
         MalumSabotageSystem.HandleReactor(shipStatus, currentMapID);
         MalumSabotageSystem.HandleOxygen(shipStatus, currentMapID);
         MalumSabotageSystem.HandleComms(shipStatus, currentMapID);
@@ -239,7 +239,7 @@ public static class MalumCheats
             VentilationSystem.Update(VentilationSystem.Operation.BootImpostors, vent.Id);
         }
 
-        CheatToggles.kickVents = false; // Button behaviour
+        CheatToggles.kickVents = false; 
     }
 
     public static void killAllCheat()
@@ -252,7 +252,7 @@ public static class MalumCheats
         }
         else
         {
-            // Kill all players by sending a successful MurderPlayer RPC call
+            
             foreach (var player in PlayerControl.AllPlayerControls)
             {
                 Utils.murderPlayer(player, MurderResultFlags.Succeeded);
@@ -272,7 +272,7 @@ public static class MalumCheats
         }
         else
         {
-            // Kill all players by sending a successful MurderPlayer RPC call
+            
             foreach (var player in PlayerControl.AllPlayerControls)
             {
                 if (player.Data.Role.TeamType == RoleTeamTypes.Crewmate){
@@ -294,7 +294,7 @@ public static class MalumCheats
         }
         else
         {
-            // Kill all players by sending a successful MurderPlayer RPC call
+            
             foreach (var player in PlayerControl.AllPlayerControls)
             {
                 if (player.Data.Role.TeamType == RoleTeamTypes.Impostor){
@@ -310,7 +310,7 @@ public static class MalumCheats
     {
         if (!CheatToggles.teleportCursor) return;
 
-        // Teleport player to cursor's in-world position on right-click
+        
         if (Input.GetMouseButtonDown(1))
         {
             PlayerControl.LocalPlayer.NetTransform.RpcSnapTo(Camera.main.ScreenToWorldPoint(Input.mousePosition));
@@ -332,8 +332,8 @@ public static class MalumCheats
 
         try
         {
-            // If the speedBoost cheat is enabled, the default speed is multiplied by the speed multiplier
-            // Otherwise the default speed is used by itself
+            
+            
 
             var newSpeed = CheatToggles.speedBoost ? Utils.DefaultSpeed * speedMultiplier : Utils.DefaultSpeed;
 
@@ -378,8 +378,8 @@ public static class MalumCheats
 
     private static void ForcePlayAnimation(byte animationType)
     {
-        // PlayerControl.LocalPlayer.RpcPlayAnimation(1); wouldn't work if visual tasks are turned off
-        // The below way makes sure it works regardless of visual task settings
+        
+        
 
         PlayerControl.LocalPlayer.PlayAnimation(animationType);
         RpcPlayAnimationMessage rpcMessage = new(PlayerControl.LocalPlayer.NetId, animationType);
@@ -422,21 +422,21 @@ public static class MalumCheats
 
         if (CheatToggles.animCamsInUse && !_hasUsedCamsCheatBefore)
         {
-            // There is no cameras on Mira HQ and Fungle
+            
             if (map is MapNames.MiraHQ or MapNames.Fungle)
             {
                 CheatToggles.animCamsInUse = false;
             }
             else
             {
-                // ShipStatus.Instance.UpdateSystem(SystemTypes.Security, PlayerControl.LocalPlayer, (byte)(CheatToggles.animCamsInUse ? 1 : 0));
+                
                 ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Security, 1);
                 _hasUsedCamsCheatBefore = true;
             }
         }
         else if (!CheatToggles.animCamsInUse && _hasUsedCamsCheatBefore)
         {
-            // Turn off cams if the cheat was used before and is now disabled
+            
             ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Security, 0);
             _hasUsedCamsCheatBefore = false;
         }

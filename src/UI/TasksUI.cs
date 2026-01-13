@@ -46,7 +46,7 @@ public class TasksUI : MonoBehaviour
 
             var nameKey = pc.name;
             _expandedPlayers.TryGetValue(nameKey, out var expanded);
-            var arrow = expanded ? "\u25BC" : "\u25B6"; // ▼ or ▶
+            var arrow = expanded ? "\u25BC" : "\u25B6"; 
 
             var taskCount = pc.myTasks.Count;
             var completeCount = pc.myTasks.ToArray().Count(t => t.IsComplete);
@@ -76,12 +76,12 @@ public class TasksUI : MonoBehaviour
                 GUILayout.BeginVertical();
                 foreach (var task in pc.myTasks)
                 {
-                    // Do some checks to not show texts: sabotage active, dead hint, impostor hint
+                    
                     if (task.TaskType is TaskTypes.ResetReactor or TaskTypes.RestoreOxy or TaskTypes.FixLights or TaskTypes.FixComms or TaskTypes.ResetSeismic or TaskTypes.StopCharles or TaskTypes.MushroomMixupSabotage) continue;
 
                     _tasksString.Clear();
                     task.AppendTaskText(_tasksString);
-                    //_tasksString.Append($"Task Type: {task.TaskType.ToString()}");
+                    
                     var taskText = _tasksString.ToString();
                     if (taskText.Contains("You're dead") || taskText.Contains("Sabotage and kill")) continue;
 

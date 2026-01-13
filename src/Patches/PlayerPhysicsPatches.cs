@@ -35,12 +35,12 @@ public static class PlayerPhysics_LateUpdate
         TracersHandler.drawPlayerTracer(__instance);
 
         GameObject[] bodyObjects = GameObject.FindGameObjectsWithTag("DeadBody");
-        foreach(GameObject bodyObject in bodyObjects) // Finds and loops through all dead bodies
+        foreach(GameObject bodyObject in bodyObjects) 
         {
             DeadBody deadBody = bodyObject.GetComponent<DeadBody>();
 
             if (deadBody){
-                if (!deadBody.Reported){ // Only draw tracers for unreported dead bodies
+                if (!deadBody.Reported){ 
                     TracersHandler.drawBodyTracer(deadBody);
                 }
             }
@@ -66,12 +66,12 @@ public static class PlayerPhysics_LateUpdate
 [HarmonyPatch(typeof(PlayerPhysics), nameof(PlayerPhysics.HandleAnimation))]
 public static class PlayerPhysics_HandleAnimation
 {
-    /// <summary>
-    /// Prefix patch of PlayerPhysics.HandleAnimation to disable walking animation.
-    /// </summary>
-    /// <param name="__instance">The <c>PlayerPhysics</c> instance.</param>
-    /// <param name="amDead">Whether to play the ghost animation.</param>
-    /// <returns><c>false</c> to skip the original method, <c>true</c> to allow the original method to run.</returns>
+    
+    
+    
+    
+    
+    
     public static bool Prefix(PlayerPhysics __instance, ref bool amDead)
     {
         return !(CheatToggles.moonwalk && __instance.AmOwner);

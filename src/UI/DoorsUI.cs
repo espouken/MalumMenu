@@ -5,12 +5,15 @@ namespace MalumMenu;
 
 public class DoorsUI : MonoBehaviour
 {
-    private Rect _windowRect = new(320, 10, 530, 280);
+    private Rect _windowRect = new(320, 10, 530, 320);
     private GUIStyle _separatorStyle;
     private GUIStyle _normalButtonStyle;
     private GUIStyle _normalToggleStyle;
     private List<SystemTypes> doorsToSpamOpen = new();
     private List<SystemTypes> doorsToSpamClose = new();
+
+    private bool _waitingForBind = false;
+    private float _bindReadyTime = 0f;
 
     private void OnGUI()
     {
@@ -42,6 +45,31 @@ public class DoorsUI : MonoBehaviour
 
     private void DoorsWindow(int windowID)
     {
+        if (_waitingForBind)
+        {
+            Event e = Event.current;
+            if (e.isKey || e.isMouse)
+            {
+                KeyCode key = KeyCode.None;
+                if (e.isKey && e.keyCode != KeyCode.None)
+                {
+                    key = e.keyCode;
+                }
+                else if (e.isMouse)
+                {
+                    key = (KeyCode)((int)KeyCode.Mouse0 + e.button);
+                }
+
+                if (key != KeyCode.None)
+                {
+                    CheatToggles.closeRoomBind = key;
+                    _waitingForBind = false;
+                    _bindReadyTime = Time.realtimeSinceStartup + 0.5f;
+                    e.Use();
+                }
+            }
+        }
+
         if (!Utils.isShip)
         {
             GUI.DragWindow();
@@ -57,6 +85,28 @@ public class DoorsUI : MonoBehaviour
         }
 
         GUILayout.BeginVertical();
+
+        GUILayout.BeginHorizontal(GUI.skin.box);
+        GUILayout.BeginVertical();
+        GUILayout.Label("Keybinds (Any Key/Mouse):");
+
+        GUILayout.BeginHorizontal();
+        string bindText = _waitingForBind ? "Press any key..." : $"Bind Close Room: {CheatToggles.closeRoomBind}";
+        if (GUILayout.Button(bindText, _normalButtonStyle))
+        {
+            _waitingForBind = !_waitingForBind;
+        }
+        if (GUILayout.Button("X", _normalButtonStyle, GUILayout.Width(25)))
+        {
+            CheatToggles.closeRoomBind = KeyCode.None;
+            _waitingForBind = false;
+        }
+        GUILayout.EndHorizontal();
+
+        GUILayout.EndVertical();
+        GUILayout.EndHorizontal();
+
+        GUILayout.Space(5);
 
         foreach (var doorRoom in DoorsHandler.GetDoorRooms())
         {
@@ -102,7 +152,7 @@ public class DoorsUI : MonoBehaviour
             }
             else
             {
-                // Clear spam lists if not host
+
                 if (doorsToSpamClose.Count != 0 || doorsToSpamOpen.Count != 0)
                 {
                     doorsToSpamClose.Clear();
@@ -158,13 +208,40 @@ public class DoorsUI : MonoBehaviour
     {
         if (!Utils.isShip) return;
 
-        // Spam Close selected doors
+        
+        
+        
+        bool isChatOpen = false;
+        if (HudManager.Instance && HudManager.Instance.Chat)
+        {
+            isChatOpen = HudManager.Instance.Chat.IsOpenOrOpening;
+        }
+
+        if (!isChatOpen && !_waitingForBind && Time.realtimeSinceStartup > _bindReadyTime)
+        {
+            KeyCode bind = CheatToggles.closeRoomBind;
+            if (bind != KeyCode.None && (Input.GetKeyDown(bind) || (bind >= KeyCode.Mouse0 && bind <= KeyCode.Mouse6 && Input.GetKeyDown(bind))))
+            {
+                var currentRoom = Utils.getCurrentRoom();
+                DoorsHandler.CloseDoorsOfRoom(currentRoom);
+
+                try
+                {
+                    var doorsInRoom = DoorsHandler.GetDoorsInRoom(currentRoom);
+                    foreach (var door in doorsInRoom)
+                    {
+                        ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Doors, (byte)door.Id);
+                    }
+                }
+                catch { }
+            }
+        }
+
         foreach (var doorRoom in doorsToSpamClose)
         {
             DoorsHandler.CloseDoorsOfRoom(doorRoom);
         }
 
-        // Spam Open selected doors
         var map = (MapNames)Utils.getCurrentMapID();
 
         if (map is MapNames.Polus or MapNames.Airship or MapNames.Fungle)

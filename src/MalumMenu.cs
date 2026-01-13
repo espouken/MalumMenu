@@ -18,9 +18,10 @@ public partial class MalumMenu : BasePlugin
     public static string malumVersion = "2.6.1";
     public static List<string> supportedAU = ["2025.3.25", "2025.3.31", "2025.6.10", "2025.9.9", "2025.10.14", "2025.11.18"];
     public static MenuUI menuUI;
-    // public static ConsoleUI consoleUI;
+    public static ConsoleUI consoleUI;
     public static DoorsUI doorsUI;
     public static TasksUI tasksUI;
+    public static RadarUI radarUI;
     public static ConfigEntry<string> menuKeybind;
     public static ConfigEntry<string> menuHtmlColor;
     public static ConfigEntry<bool> useHorizontalUI;
@@ -36,7 +37,7 @@ public partial class MalumMenu : BasePlugin
 
     public override void Load()
     {
-        //Load config settings
+        
         menuKeybind = Config.Bind("MalumMenu.GUI",
                                 "Keybind",
                                 "Delete",
@@ -82,18 +83,19 @@ public partial class MalumMenu : BasePlugin
                                 true,
                                 "When enabled it will stop Among Us from collecting analytics of your games and sending them to Innersloth using Unity Analytics");
 
-        // Passives are enabled by default
+        
         CheatToggles.unlockFeatures = CheatToggles.freeCosmetics = CheatToggles.avoidBans = true;
 
         Harmony.PatchAll();
 
         menuUI = AddComponent<MenuUI>();
-        // consoleUI = AddComponent<ConsoleUI>();
+        consoleUI = AddComponent<ConsoleUI>();
         doorsUI = AddComponent<DoorsUI>();
-        tasksUI = AddComponent <TasksUI>();
+        tasksUI = AddComponent<TasksUI>();
+        radarUI = AddComponent<RadarUI>();
         AddComponent<CheatToggles.KeybindListener>().Plugin = this;
 
-        // Disable Telemetry (haven't fully tested if it works, but according to Unity docs it should)
+        
         if (noTelemetry.Value){
 
             Analytics.enabled = false;
@@ -106,11 +108,11 @@ public partial class MalumMenu : BasePlugin
         {
             if (scene.name == "MainMenu")
             {
-                ModManager.Instance.ShowModStamp(); // Required by InnerSloth Modding Policy
+                ModManager.Instance.ShowModStamp(); 
 
-                //Warn about unsupported AU versions
+                
                 if (!supportedAU.Contains(Application.version)){
-                    //Utils.showPopup("\nThis version of MalumMenu and this version of Among Us are incompatible\n\nInstall the right version to avoid problems");
+                    
                 }
             }
         }));

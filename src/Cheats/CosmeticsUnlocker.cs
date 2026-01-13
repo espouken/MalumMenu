@@ -4,43 +4,43 @@ public static class CosmeticsUnlocker
     public static void unlockCosmetics(HatManager hatManager)
     {
         if (!CheatToggles.freeCosmetics) return;
-        foreach(var bundle in hatManager.allBundles){ //Bundles
+        foreach(var bundle in hatManager.allBundles){ 
             bundle.Free = true;
         }
 
-        foreach(var featuredBundle in hatManager.allFeaturedBundles){ //Featured Bundles
+        foreach(var featuredBundle in hatManager.allFeaturedBundles){ 
             featuredBundle.Free = true;
         }
 
-        foreach(var featuredCube in hatManager.allFeaturedCubes){ //Featured Cosmicubes
+        foreach(var featuredCube in hatManager.allFeaturedCubes){ 
             featuredCube.Free = true;
         }
 
-        foreach(var featuredItem in hatManager.allFeaturedItems){ //Featured Items
+        foreach(var featuredItem in hatManager.allFeaturedItems){ 
             featuredItem.Free = true;
         }
 
-        foreach(var hat in hatManager.allHats){ //Hats
+        foreach(var hat in hatManager.allHats){ 
             hat.Free = true;
         }
 
-        foreach(var nameplate in hatManager.allNamePlates){ //NamePlates
+        foreach(var nameplate in hatManager.allNamePlates){ 
             nameplate.Free = true;
         }
 
-        foreach(var pet in hatManager.allPets){ //Pets
+        foreach(var pet in hatManager.allPets){ 
             pet.Free = true;
         }
 
-        foreach(var skin in hatManager.allSkins){ //Skins
+        foreach(var skin in hatManager.allSkins){ 
             skin.Free = true;
         }
 
-        foreach(var starBundle in hatManager.allStarBundles){ //Star Bundles
-            starBundle.price = 0; // StarBundles don't have a Free property, so price is changed instead
+        foreach(var starBundle in hatManager.allStarBundles){ 
+            starBundle.price = 0; 
         }
 
-        foreach(var visor in hatManager.allVisors){ //Visors
+        foreach(var visor in hatManager.allVisors){ 
             visor.Free = true;
         }
     }

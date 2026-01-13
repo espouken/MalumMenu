@@ -8,7 +8,6 @@ namespace MalumMenu;
 
 public struct CheatToggles
 {
-    //Player
     public static bool noClip;
     public static bool speedBoost;
     public static bool teleportPlayer;
@@ -25,7 +24,6 @@ public struct CheatToggles
     public static bool invertControls;
     public static bool moonwalk;
 
-    //Roles
     public static bool changeRole;
     public static bool zeroKillCd;
     public static bool showTasksMenu;
@@ -45,7 +43,6 @@ public struct CheatToggles
     public static bool noVanishAnim;
     public static bool noShapeshiftAnim;
 
-    //ESP
     public static bool fullBright;
     public static bool seeGhosts;
     public static bool seeRoles;
@@ -54,19 +51,17 @@ public struct CheatToggles
     public static bool showTaskArrows;
     public static bool revealVotes;
     public static bool moreLobbyInfo;
+    public static bool eventLogger;
 
-    //Camera
     public static bool spectate;
     public static bool zoomOut;
     public static bool freecam;
 
-    //Minimap
     public static bool mapCrew;
     public static bool mapImps;
     public static bool mapGhosts;
     public static bool colorBasedMap;
 
-    //Tracers
     public static bool tracersImps;
     public static bool tracersCrew;
     public static bool tracersGhosts;
@@ -74,11 +69,21 @@ public struct CheatToggles
     public static bool colorBasedTracers;
     public static bool distanceBasedTracers;
 
-    //Chat
+    public static bool radarEnabled;
+    public static bool radarCrew = true;
+    public static bool radarImps = true;
+    public static bool radarGhosts;
+    public static bool radarBodies;
+    public static bool radarColorBased;
+    public static bool radarShowMap = true;
+    public static bool radarShowKills = true;
+    public static bool radarShowVents = true;
+    public static bool radarShowTasks = true;
+    public static bool radarShowShapeshift = true;
+
     public static bool alwaysChat;
     public static bool chatJailbreak;
 
-    //Ship
     public static bool closeMeeting;
     public static bool sabotageMap;
     public static bool openAllDoors;
@@ -86,6 +91,7 @@ public struct CheatToggles
     public static bool spamOpenAllDoors;
     public static bool spamCloseAllDoors;
     public static bool autoOpenDoorsOnUse;
+    public static bool autoFixLights;
     public static bool unfixableLights;
     public static bool commsSab;
     public static bool elecSab;
@@ -94,16 +100,14 @@ public struct CheatToggles
     public static bool mushSab;
     public static bool mushSpore;
     public static bool showDoorsMenu;
+    public static bool closeCurrentRoomDoors;
 
-    //Vents
+    public static KeyCode closeRoomBind = KeyCode.None;
+
     public static bool useVents;
     public static bool walkVent;
     public static bool kickVents;
 
-    //Host-Only
-    //public static bool impostorHack;
-    //public static bool godMode;
-    //public static bool evilVote;
     public static bool voteImmune;
     public static bool skipMeeting;
     public static bool callMeeting;
@@ -111,35 +115,29 @@ public struct CheatToggles
     public static bool noGameEnd;
     public static bool noOptionsLimits;
 
-    //Passive
     public static bool unlockFeatures;
     public static bool freeCosmetics;
     public static bool avoidBans;
     public static bool spoofAprilFoolsDate;
     public static bool panic;
 
-    //Animations
     public static bool animShields;
     public static bool animAsteroids;
     public static bool animEmptyGarbage;
     public static bool animScan;
     public static bool animCamsInUse;
 
-    //Config
     public static bool reloadConfig;
     public static bool RGBMode;
 
-    // Keybind storage: toggle name -> KeyCode (KeyCode.None == no key)
     public static readonly Dictionary<string, KeyCode> Keybinds = new();
 
-    // Internal map for reflection access: toggle name -> FieldInfo
     private static readonly Dictionary<string, FieldInfo> ToggleFields = new();
 
     public static readonly string ProfilePath = Path.Combine(BepInEx.Paths.ConfigPath, "MalumProfile.txt");
 
     static CheatToggles()
     {
-        // Populate reflection map once at startup and initialize Keybinds with KeyCode.None
         var fields = typeof(CheatToggles).GetFields(BindingFlags.Static | BindingFlags.Public);
         foreach (var field in fields)
         {
@@ -161,13 +159,11 @@ public struct CheatToggles
         protectPlayer = variableToKeep == "protectPlayer" && protectPlayer;
     }
 
-    public static bool shouldPPMClose(){
+    public static bool shouldPPMClose()
+    {
         return !changeRole && !ejectPlayer && !reportBody && !telekillPlayer && !killPlayer && !spectate && !teleportPlayer && !protectPlayer;
     }
 
-    /// <summary>
-    /// Disables all cheat toggles by setting all boolean fields to false using the cached ToggleFields.
-    /// </summary>
     public static void DisableAll()
     {
         foreach (var field in ToggleFields.Values)
@@ -176,9 +172,6 @@ public struct CheatToggles
         }
     }
 
-    /// <summary>
-    /// Saves cheat toggles and their keybinds to "MalumProfile.txt". Format per line: <c>ToggleName = True/False = KeyCode.Foo</c>
-    /// </summary>
     public static void SaveTogglesToProfile()
     {
         using var writer = new StreamWriter(ProfilePath);
@@ -193,14 +186,14 @@ public struct CheatToggles
 
         foreach (var field in ToggleFields.Values)
         {
-            Keybinds.TryGetValue(field.Name, out var key);  // If no key is set, write KeyCode.None
+            Keybinds.TryGetValue(field.Name, out var key);
             writer.WriteLine($"{field.Name} = {field.GetValue(null)} = KeyCode.{key}");
         }
+
+        
+        writer.WriteLine($"closeRoomBind = False = KeyCode.{closeRoomBind}");
     }
 
-    /// <summary>
-    /// Loads cheat toggles and their keybinds from "MalumProfile.txt". Format per line: <c>ToggleName = True/False = KeyCode</c>
-    /// </summary>
     public static void LoadTogglesFromProfile()
     {
         if (!File.Exists(ProfilePath)) return;
@@ -216,6 +209,26 @@ public struct CheatToggles
             if (parts.Length < 2) continue;
 
             var name = parts[0].Trim();
+
+            
+            if (name == "closeRoomBind")
+            {
+                if (parts.Length >= 3)
+                {
+                    var keyPart = parts[2].Trim();
+                    if (keyPart.StartsWith("KeyCode."))
+                    {
+                        keyPart = keyPart["KeyCode.".Length..];
+                    }
+
+                    if (!string.IsNullOrEmpty(keyPart) && System.Enum.TryParse<KeyCode>(keyPart, true, out var parsed))
+                    {
+                        closeRoomBind = parsed;
+                    }
+                }
+                continue;
+            }
+
             if (!ToggleFields.TryGetValue(name, out var field)) continue;
 
             if (bool.TryParse(parts[1].Trim(), out var boolVal))
@@ -258,7 +271,6 @@ public struct CheatToggles
                 reloadConfig = false;
             }
 
-            // Check for keybind presses and toggle corresponding cheats
             foreach (var (name, key) in Keybinds)
             {
                 if (key == KeyCode.None) continue;
