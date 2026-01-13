@@ -35,14 +35,7 @@
 # 🎁 Releases
 
 **PLEASE READ**:
-This repository (more specifically, the `reloaded` branch) is my personal fork of the original MalumMenu project.
-
-| Mod Version | Among Us - Version | Link                                  |
-|-------------|--------------------|---------------------------------------|
-| v2.6.1      | 2025.9.9 (17.0.0)  | [Download](../../releases/tag/v2.6.1) |
-| v2.5.3      | 2025.9.9 (17.0.0)  | [Download](../../releases/tag/v2.5.3) |
-| v2.5.2      | 2025.6.10 (16.1.0) | [Download](../../releases/tag/v2.5.2) |
-| v2.5.1      | 2025.6.10 (16.1.0) | [Download](../../releases/tag/v2.5.1) |
+This repository is my fork of @astra1dev's Malum Menu fork is my personal version of malum menu i use, for releases check on the release tab, im lazy to type this out tbh.
 
 For older (official) versions, please refer to the [original MalumMenu repository](https://github.com/scp222thj/MalumMenu).
 
@@ -57,6 +50,32 @@ If you are using the DLL, make sure you have BepInEx 6.0.0-BE-735 installed. Old
 Make sure you are only having one version of MalumMenu installed at a time, as having multiple versions can cause issues.
 
 # 📋 Features
+
+Changes from @astra1dev's fork:
+
+#### Fixes
+- Fixed menu position not saving correctly between sessions (menu now remembers its last position)
+- Fixed "Auto-Open Doors On Use" disabling mid-games
+
+#### Additions
+- Added "Auto-Fix Lights On Use" (Ship category)
+- Added "Bind Close Room" keybind to close doors in current/previous room (Ship category, note: doesn't work properly on decontamination)
+- Added "Event Logger" to ESP category, which logs: kills, body reports, votes, sabotages, completed tasks, vent entries/exits, and shapeshifts
+- Added "Radar" sub-tab to ESP category with replay functionality, featuring:
+  - Player rendering for Crewmates, Impostors, Ghosts and Dead bodys
+  - Tracking with color/role-based display options (else its role color based)
+  - Map background support (Skeld, Polus only rn)
+  - Kill, vent in/out, and task completion indicators
+  - Configurable tracers showing player movement paths (between 0-3000ms)
+  - Toggle between follow (centered, zoomed) and fixed (full map) view modes
+- Added replay system to Radar with round navigation (Prev/Next/Live), timeline slider, and play/pause controls
+
+---
+
+
+Btw, most icons were gotten from(directly copy pasted):
+https://github.com/g0aty/SickoMenu/tree/main/resources 
+
 
 ![](https://github.com/user-attachments/assets/e7342201-aa01-4435-8c9e-d543712842e0)
 
