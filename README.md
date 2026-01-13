@@ -54,7 +54,7 @@ Make sure you are only having one version of MalumMenu installed at a time, as h
 Changes from @astra1dev's fork:
 
 #### Fixes
-- Fixed menu position not saving correctly between sessions (menu now remembers its last position)
+- Fixed menu position not saving correctly between open/close (menu now remembers its last position, before it was always on mouse position)
 - Fixed "Auto-Open Doors On Use" disabling mid-games
 
 #### Additions
