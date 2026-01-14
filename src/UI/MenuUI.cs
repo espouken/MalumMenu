@@ -46,6 +46,20 @@ public class MenuUI : MonoBehaviour
             new ToggleInfo(" More Lobby Info", () => CheatToggles.moreLobbyInfo, x => CheatToggles.moreLobbyInfo = x),
             new ToggleInfo(" Event Logger", () => CheatToggles.eventLogger, x => { CheatToggles.eventLogger = x; if (MalumMenu.consoleUI != null) MalumMenu.consoleUI.isVisible = x; })
         ], [
+            new SubmenuInfo("Event Logger Filter", false, [
+                new ToggleInfo(" Log Kills", () => CheatToggles.eventLogKills, x => CheatToggles.eventLogKills = x),
+                new ToggleInfo(" Log Vents", () => CheatToggles.eventLogVents, x => CheatToggles.eventLogVents = x),
+                new ToggleInfo(" Log Tasks", () => CheatToggles.eventLogTasks, x => CheatToggles.eventLogTasks = x),
+                new ToggleInfo(" Log Votes", () => CheatToggles.eventLogVotes, x => CheatToggles.eventLogVotes = x),
+                new ToggleInfo(" Log Sabotage", () => CheatToggles.eventLogSabotage, x => CheatToggles.eventLogSabotage = x),
+                new ToggleInfo(" Log Body Reports", () => CheatToggles.eventLogBodyReports, x => CheatToggles.eventLogBodyReports = x),
+                new ToggleInfo(" Log Disconnects", () => CheatToggles.eventLogDisconnects, x => CheatToggles.eventLogDisconnects = x),
+                new ToggleInfo(" Log Shapeshift", () => CheatToggles.eventLogShapeshift, x => CheatToggles.eventLogShapeshift = x),
+                new ToggleInfo(" Log Protect", () => CheatToggles.eventLogProtect, x => CheatToggles.eventLogProtect = x),
+                new ToggleInfo(" Log Scanner", () => CheatToggles.eventLogScanner, x => CheatToggles.eventLogScanner = x),
+                new ToggleInfo(" Log Roles", () => CheatToggles.eventLogRoles, x => CheatToggles.eventLogRoles = x)
+            ]),
+
             new SubmenuInfo("Camera", false, [
 
                 new ToggleInfo(" Zoom Out", () => CheatToggles.zoomOut, x => CheatToggles.zoomOut = x),
@@ -143,6 +157,7 @@ public class MenuUI : MonoBehaviour
             new ToggleInfo(" Unfixable Lights", () => CheatToggles.unfixableLights,
                 x => CheatToggles.unfixableLights = x),
             new ToggleInfo(" Auto-Fix Lights On Use", () => CheatToggles.autoFixLights, x => CheatToggles.autoFixLights = x),
+            new ToggleInfo(" Auto-Fix Comms On Use", () => CheatToggles.autoFixComms, x => CheatToggles.autoFixComms = x),
             new ToggleInfo(" Report Body", () => CheatToggles.reportBody, x => CheatToggles.reportBody = x),
             new ToggleInfo(" Close Meeting", () => CheatToggles.closeMeeting, x => CheatToggles.closeMeeting = x),
             new ToggleInfo(" Auto-Open Doors On Use", () => CheatToggles.autoOpenDoorsOnUse, x => CheatToggles.autoOpenDoorsOnUse = x)
@@ -398,17 +413,21 @@ public class MenuUI : MonoBehaviour
                 {
                     if (PlayerControl.LocalPlayer.Data.IsDead)
                     {
-                        PlayerControl.LocalPlayer.MyPhysics.GhostSpeed = GUI.HorizontalSlider(new Rect(20, currentYPosition, 250, 30), PlayerControl.LocalPlayer.MyPhysics.GhostSpeed, 0f, 20f);
+                        PlayerControl.LocalPlayer.MyPhysics.GhostSpeed = Utils.CustomSlider(new Rect(20, currentYPosition, 250, 30), PlayerControl.LocalPlayer.MyPhysics.GhostSpeed, 0f, 20f);
                         Utils.snapSpeedToDefault(0.05f, true);
-                        GUI.Label(new Rect(20, currentYPosition + 10, 250, 20), $"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.GhostSpeed} {(Utils.isSpeedDefault(true) ? "(Default)" : "")}");
-                        currentYPosition += toggleSpacing;
+                        
+                        GUI.Label(new Rect(20, currentYPosition + 30, 250, 20), $"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.GhostSpeed} {(Utils.isSpeedDefault(true) ? "(Default)" : "")}");
+                        
+                        currentYPosition += 60;
                     }
                     else
                     {
-                        PlayerControl.LocalPlayer.MyPhysics.Speed = GUI.HorizontalSlider(new Rect(20, currentYPosition, 250, 30), PlayerControl.LocalPlayer.MyPhysics.Speed, 0f, 20f);
+                        PlayerControl.LocalPlayer.MyPhysics.Speed = Utils.CustomSlider(new Rect(20, currentYPosition, 250, 30), PlayerControl.LocalPlayer.MyPhysics.Speed, 0f, 20f);
                         Utils.snapSpeedToDefault(0.05f);
-                        GUI.Label(new Rect(20, currentYPosition + 10, 250, 20), $"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.Speed} {(Utils.isSpeedDefault() ? "(Default)" : "")}");
-                        currentYPosition += toggleSpacing;
+                        
+                        GUI.Label(new Rect(20, currentYPosition + 30, 250, 20), $"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.Speed} {(Utils.isSpeedDefault() ? "(Default)" : "")}");
+                        
+                        currentYPosition += 60;
                     }
                 }
                 catch (NullReferenceException) { }
@@ -574,13 +593,13 @@ public class MenuUI : MonoBehaviour
             {
                 if (PlayerControl.LocalPlayer.Data.IsDead)
                 {
-                    PlayerControl.LocalPlayer.MyPhysics.GhostSpeed = GUILayout.HorizontalSlider(PlayerControl.LocalPlayer.MyPhysics.GhostSpeed, 0f, 20f, GUILayout.Width(250f));
+                    PlayerControl.LocalPlayer.MyPhysics.GhostSpeed = Utils.CustomLayoutSlider(PlayerControl.LocalPlayer.MyPhysics.GhostSpeed, 0f, 20f, GUILayout.Width(250f));
                     Utils.snapSpeedToDefault(0.05f, true);
                     GUILayout.Label($"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.GhostSpeed} {(Utils.isSpeedDefault(true) ? "(Default)" : "")}");
                 }
                 else
                 {
-                    PlayerControl.LocalPlayer.MyPhysics.Speed = GUILayout.HorizontalSlider(PlayerControl.LocalPlayer.MyPhysics.Speed, 0f, 20f, GUILayout.Width(250f));
+                    PlayerControl.LocalPlayer.MyPhysics.Speed = Utils.CustomLayoutSlider(PlayerControl.LocalPlayer.MyPhysics.Speed, 0f, 20f, GUILayout.Width(250f));
                     Utils.snapSpeedToDefault(0.05f);
                     GUILayout.Label($"Current Speed: {PlayerControl.LocalPlayer?.MyPhysics.Speed} {(Utils.isSpeedDefault() ? "(Default)" : "")}");
                 }

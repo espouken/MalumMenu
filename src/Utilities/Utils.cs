@@ -18,7 +18,7 @@ namespace MalumMenu;
 
 public static class Utils
 {
-    
+
     public static ReferenceDataManager referenceDataManager = DestroyableSingleton<ReferenceDataManager>.Instance;
     public static SabotageSystemType SabotageSystem => ShipStatus.Instance.Systems[SystemTypes.Sabotage].Cast<SabotageSystemType>();
     public static bool isShip => ShipStatus.Instance;
@@ -46,22 +46,22 @@ public static class Utils
     public const float DefaultSpeed = 2.5f;
     public const float DefaultGhostSpeed = 3f;
 
-    
-    
-    
-    
-    
+
+
+
+
+
     public static bool isSpeedDefault(bool forGhost = false)
     {
         return forGhost ? Mathf.Approximately(PlayerControl.LocalPlayer.MyPhysics.GhostSpeed, DefaultGhostSpeed) :
             Mathf.Approximately(PlayerControl.LocalPlayer.MyPhysics.Speed, DefaultSpeed);
     }
 
-    
-    
-    
-    
-    
+
+
+
+
+
     public static void snapSpeedToDefault(float snapRange, bool forGhost = false)
     {
         if (forGhost)
@@ -76,7 +76,7 @@ public static class Utils
         }
     }
 
-    
+
     public static ClientData getClientByPlayer(PlayerControl player)
     {
         try
@@ -90,7 +90,7 @@ public static class Utils
         }
     }
 
-    
+
     public static int getClientIdByPlayer(PlayerControl player)
     {
         if (player == null) return -1;
@@ -98,19 +98,20 @@ public static class Utils
         return client == null ? -1 : client.Id;
     }
 
-    
+
     public static bool isVanished(NetworkedPlayerInfo playerInfo)
     {
         PhantomRole phantomRole = playerInfo.Role as PhantomRole;
 
-        if (phantomRole != null){
+        if (phantomRole != null)
+        {
             return phantomRole.fading || phantomRole.isInvisible;
         }
 
         return false;
     }
 
-    
+
     public static bool isValidTarget(NetworkedPlayerInfo target)
     {
         var killAnyoneRequirements = target && !target.Disconnected && target.Object.Visible && target.PlayerId != PlayerControl.LocalPlayer.PlayerId && target.Role && target.Object;
@@ -134,22 +135,24 @@ public static class Utils
         return playerDataList;
     }
 
-    
-    
-    public static void adjustResolution() {
+
+
+    public static void adjustResolution()
+    {
         ResolutionManager.ResolutionChanged.Invoke((float)Screen.width / Screen.height, Screen.width, Screen.height, Screen.fullScreen);
     }
 
-    
+
     public static RoleBehaviour getBehaviourByRoleType(RoleTypes roleType)
     {
         return RoleManager.Instance.AllRoles.ToArray().First(r => r.Role == roleType);
     }
 
-    
+
     public static void murderPlayer(PlayerControl target, MurderResultFlags result)
     {
-        if (isFreePlay){
+        if (isFreePlay)
+        {
 
             PlayerControl.LocalPlayer.MurderPlayer(target, MurderResultFlags.Succeeded);
             return;
@@ -165,11 +168,12 @@ public static class Utils
         }
     }
 
-    
+
     public static void reportDeadBody(NetworkedPlayerInfo playerData)
     {
 
-        if (isFreePlay){
+        if (isFreePlay)
+        {
 
             PlayerControl.LocalPlayer.CmdReportDeadBody(playerData);
             return;
@@ -184,11 +188,12 @@ public static class Utils
     }
 
 
-    
+
     public static void completeMyTasks()
     {
 
-        if (isFreePlay){
+        if (isFreePlay)
+        {
 
             foreach (var task in PlayerControl.LocalPlayer.myTasks)
             {
@@ -234,10 +239,11 @@ public static class Utils
         }
     }
 
-    
+
     public static void openChat()
     {
-        if (!DestroyableSingleton<HudManager>.Instance.Chat.IsOpenOrOpening){
+        if (!DestroyableSingleton<HudManager>.Instance.Chat.IsOpenOrOpening)
+        {
             DestroyableSingleton<HudManager>.Instance.Chat.chatScreen.SetActive(true);
             PlayerControl.LocalPlayer.NetTransform.Halt();
             DestroyableSingleton<HudManager>.Instance.Chat.StartCoroutine(DestroyableSingleton<HudManager>.Instance.Chat.CoOpen());
@@ -249,7 +255,7 @@ public static class Utils
 
     }
 
-    
+
     public static void drawTracer(GameObject sourceObject, GameObject targetObject, Color color)
     {
         var lineRenderer = sourceObject.GetComponent<LineRenderer>();
@@ -262,7 +268,7 @@ public static class Utils
         lineRenderer.SetVertexCount(2);
         lineRenderer.SetWidth(0.02F, 0.02F);
 
-        
+
         Material material = DestroyableSingleton<HatManager>.Instance.PlayerMaterial;
 
         lineRenderer.material = material;
@@ -272,42 +278,50 @@ public static class Utils
         lineRenderer.SetPosition(1, targetObject.transform.position);
     }
 
-    
+
     public static bool chatUiActive()
     {
-        try{
+        try
+        {
             return CheatToggles.alwaysChat || MeetingHud.Instance || !ShipStatus.Instance || PlayerControl.LocalPlayer.Data.IsDead;
-        }catch{
+        }
+        catch
+        {
             return false;
         }
     }
 
-    
+
     public static void closeChat()
     {
-        if (DestroyableSingleton<HudManager>.Instance.Chat.IsOpenOrOpening){
+        if (DestroyableSingleton<HudManager>.Instance.Chat.IsOpenOrOpening)
+        {
             DestroyableSingleton<HudManager>.Instance.Chat.ForceClosed();
         }
     }
 
-    
-    public static float getDistanceFrom(PlayerControl target, PlayerControl source = null){
 
-        if (source.IsNull()){
+    public static float getDistanceFrom(PlayerControl target, PlayerControl source = null)
+    {
+
+        if (source.IsNull())
+        {
             source = PlayerControl.LocalPlayer;
         }
 
         Vector2 vector = target.GetTruePosition() - source.GetTruePosition();
-		float magnitude = vector.magnitude;
+        float magnitude = vector.magnitude;
 
         return magnitude;
 
     }
 
-    
-    public static System.Collections.Generic.List<PlayerControl> getPlayersSortedByDistance(PlayerControl source = null){
 
-        if (source.IsNull()){
+    public static System.Collections.Generic.List<PlayerControl> getPlayersSortedByDistance(PlayerControl source = null)
+    {
+
+        if (source.IsNull())
+        {
             source = PlayerControl.LocalPlayer;
         }
 
@@ -330,26 +344,27 @@ public static class Utils
         return outputList.Count <= 0 ? null : outputList;
     }
 
-    
+
     public static byte getCurrentMapID()
     {
-        
+
         if (isFreePlay)
         {
             return (byte)AmongUsClient.Instance.TutorialMapId;
         }
 
-        
+
         if (GameOptionsManager.Instance == null || GameOptionsManager.Instance.currentGameOptions == null) return 0;
         return GameOptionsManager.Instance.currentGameOptions.MapId;
     }
 
-    
-    public static SystemTypes getCurrentRoom(){
+
+    public static SystemTypes getCurrentRoom()
+    {
         return HudManager.Instance.roomTracker.LastRoom.RoomId;
     }
 
-    
+
     public static string getColoredPingText(int ping)
     {
         return ping switch
@@ -360,39 +375,42 @@ public static class Utils
         };
     }
 
-    
-    public static KeyCode stringToKeycode(string keyCodeStr){
 
-        if(!string.IsNullOrEmpty(keyCodeStr)) 
+    public static KeyCode stringToKeycode(string keyCodeStr)
+    {
+
+        if (!string.IsNullOrEmpty(keyCodeStr))
         {
             try
             {
-                
+
                 KeyCode keyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), keyCodeStr, true);
 
                 return keyCode;
-            }catch{}
+            }
+            catch { }
         }
 
-        return KeyCode.Delete; 
+        return KeyCode.Delete;
     }
 
-    
+
     public static bool stringToPlatformType(string platformStr, out Platforms? platform)
     {
-        if (!string.IsNullOrEmpty(platformStr)) 
+        if (!string.IsNullOrEmpty(platformStr))
         {
             try
             {
-                
+
                 platform = (Platforms)Enum.Parse(typeof(Platforms), platformStr, true);
 
-                return true; 
-            }catch{}
+                return true;
+            }
+            catch { }
         }
 
         platform = null;
-        return false; 
+        return false;
     }
 
     public static string PlatformTypeToString(Platforms platform)
@@ -413,8 +431,8 @@ public static class Utils
         };
     }
 
-    
-    
+
+
     public static string getRoleName(NetworkedPlayerInfo playerData)
     {
         var translatedRole = DestroyableSingleton<TranslationController>.Instance.GetString(playerData.Role.StringName, Il2CppSystem.Array.Empty<Il2CppSystem.Object>());
@@ -431,7 +449,7 @@ public static class Utils
         return translatedRole;
     }
 
-    
+
     public static string GetNameTag(NetworkedPlayerInfo playerInfo, string playerName, bool isChat = false)
     {
         var nameTag = playerName;
@@ -444,8 +462,8 @@ public static class Utils
         var level = playerInfo.PlayerLevel + 1;
         var platform = "Unknown";
         try { platform = PlatformTypeToString(player.PlatformData.Platform); } catch { }
-        
-        
+
+
         var roleColor = ColorUtility.ToHtmlStringRGB(playerInfo.Role.TeamColor);
 
         var hostString = player == host ? "Host - " : "";
@@ -516,14 +534,14 @@ public static class Utils
 
     public static string GetRandomName()
     {
-        
+
         var length = UnityEngine.Random.Range(1, 13);
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         return new string(Enumerable.Repeat(chars, length).Select(s => s[UnityEngine.Random.Range(0, s.Length)]).ToArray());
     }
 
-    
-    
+
+
     public static void showPopup(string text)
     {
         var popup = Object.Instantiate(DiscordManager.Instance.discordPopup, Camera.main!.transform);
@@ -542,8 +560,8 @@ public static class Utils
         DestroyableSingleton<DisconnectPopup>.Instance.ShowCustom(text);
     }
 
-    
-    
+
+
     public static Dictionary<string, Sprite> CachedSprites = new();
     public static Sprite LoadSprite(string path, float pixelsPerUnit = 1f)
     {
@@ -571,16 +589,16 @@ public static class Utils
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            
-            
+
+
             var stream = assembly.GetManifestResourceStream(path);
 
-            
+
             if (stream == null)
             {
                 var resourceNames = assembly.GetManifestResourceNames();
                 var foundResource = resourceNames.FirstOrDefault(r => r.EndsWith(path) || r.Contains($".{path}"));
-                
+
                 if (!string.IsNullOrEmpty(foundResource))
                 {
                     stream = assembly.GetManifestResourceStream(foundResource);
@@ -609,7 +627,7 @@ public static class Utils
 
     public static void OpenConfigFile()
     {
-        
+
         var configFilePath = Path.Combine(Paths.ConfigPath, "MalumMenu.cfg");
 
         if (File.Exists(configFilePath))
@@ -647,7 +665,7 @@ public static class Utils
         private void LateUpdate()
         {
             try { Harmony.UnpatchID(MalumMenu.Id); }
-            catch {}
+            catch { }
             Destroy(gameObject);
         }
     }
@@ -657,8 +675,79 @@ public static class Utils
         CheatToggles.DisableAll();
         ModManager.Instance.ModStamp.enabled = false;
 
-        
-        
+
+
         PanicCleaner.Create();
+    }
+
+    public static float CustomSlider(Rect position, float value, float min, float max)
+    {
+        int controlID = GUIUtility.GetControlID(FocusType.Passive);
+        Event current = Event.current;
+
+        
+        
+        Rect hitRect = new Rect(position.x, position.y - 5f, position.width, position.height + 15f);
+
+        switch (current.type)
+        {
+            case EventType.MouseDown:
+                if (hitRect.Contains(current.mousePosition) && current.button == 0)
+                {
+                    GUIUtility.hotControl = controlID;
+                    value = Mathf.Clamp(min + (current.mousePosition.x - position.x) / position.width * (max - min), min, max);
+                    GUI.changed = true;
+                    current.Use();
+                }
+                break;
+
+            case EventType.MouseDrag:
+                if (GUIUtility.hotControl == controlID)
+                {
+                    value = Mathf.Clamp(min + (current.mousePosition.x - position.x) / position.width * (max - min), min, max);
+                    GUI.changed = true;
+                    current.Use();
+                }
+                break;
+
+            case EventType.MouseUp:
+                if (GUIUtility.hotControl == controlID)
+                {
+                    GUIUtility.hotControl = 0;
+                    current.Use();
+                }
+                break;
+
+            case EventType.Repaint:
+                
+                float trackHeight = 8f;
+                Rect trackRect = new Rect(position.x, position.y + (position.height - trackHeight) / 2f, position.width, trackHeight);
+                GUI.skin.horizontalSlider.Draw(trackRect, false, false, false, false);
+
+                
+                GUIStyle thumbStyle = GUI.skin.horizontalSliderThumb;
+
+                float thumbWidth = 12f;
+                float thumbHeight = 16f;
+
+                float normalizedValue = (value - min) / (max - min);
+                float availableWidth = position.width - thumbWidth;
+                float thumbX = position.x + (normalizedValue * availableWidth);
+
+                
+                float thumbY = (position.y + (position.height - thumbHeight) / 2f) + 4.0f;
+
+                Rect thumbRect = new Rect(thumbX, thumbY, thumbWidth, thumbHeight);
+                thumbStyle.Draw(thumbRect, false, false, GUIUtility.hotControl == controlID, false);
+                break;
+        }
+
+        return value;
+    }
+
+    public static float CustomLayoutSlider(float value, float min, float max, params GUILayoutOption[] options)
+    {
+        Rect position = GUILayoutUtility.GetRect(100f, 20f, GUI.skin.horizontalSlider, options);
+        return CustomSlider(position, value, min, max);
     }
 }

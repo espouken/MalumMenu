@@ -9,9 +9,9 @@ public class RadarUI : MonoBehaviour
 {
     public static RadarUI Instance;
 
-    
+
     private const float BaseRadarWidth = 450f;
-    private const float SkeldRadarWidth = 620f; 
+    private const float SkeldRadarWidth = 620f;
     private float currentRadarWidth = 450f;
 
     private const float RadarHeight = 350f;
@@ -32,10 +32,24 @@ public class RadarUI : MonoBehaviour
 
     private float tracerDuration = 0f;
 
-    
+
+
     private Dictionary<byte, List<Vector2>> cachedTracerPaths = new();
     private Dictionary<byte, Color> cachedTracerColors = new();
     private int lastFoundFrameIndex = -1;
+
+
+    private float lastTracerTime = -1f;
+    private float lastTracerDuration = -1f;
+    private int lastTracerRoundIndex = -99;
+    private int lastTracerFrameCount = -1;
+
+
+    private static readonly List<Vector2> tempScreenPoints = new(256);
+
+
+    private const int MaxTracerPoints = 150;
+    private const float MinPointDistanceSq = 0.04f;
 
     public enum RadarEventType { Kill, VentIn, VentOut, Task, Shapeshift }
     public struct RadarEventData
@@ -97,7 +111,7 @@ public class RadarUI : MonoBehaviour
 
     private Dictionary<Texture2D, GUIStyle> textureStyles = new();
 
-    
+
     private GUIStyle radarButtonStyle;
     private GUIStyle radarLabelStyle;
 
@@ -115,7 +129,7 @@ public class RadarUI : MonoBehaviour
         recordingStartTime = Time.time;
         currentRound = new RadarRound { StartTime = 0f };
 
-        
+
         radarWindowRect = new Rect(Screen.width - BaseRadarWidth - 20, 20, BaseRadarWidth, RadarHeight + 110);
         InitializeMapConfigs();
         initialized = true;
@@ -123,7 +137,7 @@ public class RadarUI : MonoBehaviour
 
     private void InitializeMapConfigs()
     {
-        
+
         mapConfigs[0] = new MapConfig { WorldScale = 22.5f, Offset = new Vector2(-2.0f, -6.0f) };
         mapConfigs[1] = new MapConfig { WorldScale = 11.0f, Offset = new Vector2(1, 2) };
         mapConfigs[2] = new MapConfig { WorldScale = 20.2f, Offset = new Vector2(20.5f, -12.9f) };
@@ -227,6 +241,17 @@ public class RadarUI : MonoBehaviour
         viewingRoundIndex = -1;
         currentReplayTime = 0f;
         isReplayPaused = false;
+        InvalidateTracerCache();
+    }
+
+    private void InvalidateTracerCache()
+    {
+        lastTracerTime = -1f;
+        lastTracerDuration = -1f;
+        lastTracerRoundIndex = -99;
+        lastTracerFrameCount = -1;
+        cachedTracerPaths.Clear();
+        cachedTracerColors.Clear();
     }
 
     public void OnMeetingEnd()
@@ -239,6 +264,7 @@ public class RadarUI : MonoBehaviour
         currentRound = new RadarRound { StartTime = newStartTime };
         viewingRoundIndex = -1;
         currentReplayTime = 0f;
+        InvalidateTracerCache();
     }
 
     private void RecordFrame(float time)
@@ -414,9 +440,9 @@ public class RadarUI : MonoBehaviour
         if (!CheatToggles.radarEnabled || MenuUI.isPanicked) return;
         if (!Utils.isPlayer || !Utils.isShip) return;
 
-        
+
         byte mapId = Utils.getCurrentMapID();
-        if (mapId == 0) 
+        if (mapId == 0)
         {
             currentRadarWidth = SkeldRadarWidth;
         }
@@ -432,9 +458,11 @@ public class RadarUI : MonoBehaviour
         }
         else
         {
-            
+
             radarWindowRect.width = currentRadarWidth;
             
+            radarWindowRect.height = RadarHeight + 110;
+
             if (radarWindowRect.xMax > Screen.width)
             {
                 radarWindowRect.x = Screen.width - currentRadarWidth - 20;
@@ -443,14 +471,14 @@ public class RadarUI : MonoBehaviour
 
         CreateTextures();
 
-        
+
         if (radarButtonStyle == null)
         {
             radarButtonStyle = new GUIStyle(GUI.skin.button)
             {
-                fontSize = 10, 
+                fontSize = 10,
                 alignment = TextAnchor.MiddleCenter,
-                padding = new RectOffset() { left = 2, right = 2, top = 0, bottom = 0 }, 
+                padding = new RectOffset() { left = 2, right = 2, top = 0, bottom = 0 },
                 contentOffset = Vector2.zero,
                 clipping = TextClipping.Overflow,
                 wordWrap = false
@@ -551,7 +579,7 @@ public class RadarUI : MonoBehaviour
             DrawReplayControls(RadarHeight, activeRound, maxTime, isLive);
 
             string modeText = CheatToggles.radarColorBased ? "[Color]" : "[Role]";
-            
+
             GUI.Label(new Rect(5, RadarHeight + 75, 100, 16), modeText, radarLabelStyle);
 
             if (Input.GetKey(KeyCode.LeftAlt))
@@ -756,7 +784,7 @@ public class RadarUI : MonoBehaviour
     {
         int frameIndex = FindFrameIndex(round, time);
         if (frameIndex < 0 || frameIndex >= round.Frames.Count) return;
-        
+
         lastFoundFrameIndex = frameIndex;
         RadarFrame bestFrame = round.Frames[frameIndex];
 
@@ -796,16 +824,16 @@ public class RadarUI : MonoBehaviour
         }
     }
 
-    
+
     private int FindFrameIndex(RadarRound round, float targetTime)
     {
         if (round.Frames.Count == 0) return -1;
         if (round.Frames.Count == 1) return 0;
-        
+
         int left = 0;
         int right = round.Frames.Count - 1;
-        
-        
+
+
         while (left < right)
         {
             int mid = (left + right + 1) / 2;
@@ -814,15 +842,15 @@ public class RadarUI : MonoBehaviour
             else
                 right = mid - 1;
         }
-        
-        
+
+
         if (left < round.Frames.Count - 1)
         {
             float diffLeft = Mathf.Abs(round.Frames[left].Time - targetTime);
             float diffRight = Mathf.Abs(round.Frames[left + 1].Time - targetTime);
             if (diffRight < diffLeft) return left + 1;
         }
-        
+
         return left;
     }
 
@@ -831,31 +859,83 @@ public class RadarUI : MonoBehaviour
         if (round.Frames.Count < 2) return;
 
         float startTime = time - duration;
+        int roundIndex = viewingRoundIndex;
+        int frameCount = round.Frames.Count;
 
-        
-        cachedTracerPaths.Clear();
-        cachedTracerColors.Clear();
 
-        for (int i = round.Frames.Count - 1; i >= 0; i--)
+        bool needsRebuild = Mathf.Abs(time - lastTracerTime) > 0.05f ||
+                           Mathf.Abs(duration - lastTracerDuration) > 0.01f ||
+                           roundIndex != lastTracerRoundIndex ||
+                           frameCount != lastTracerFrameCount;
+
+        if (needsRebuild)
         {
-            RadarFrame frame = round.Frames[i];
-            if (frame.Time > time) continue;
-            if (frame.Time < startTime) break;
+            lastTracerTime = time;
+            lastTracerDuration = duration;
+            lastTracerRoundIndex = roundIndex;
+            lastTracerFrameCount = frameCount;
 
-            foreach (var p in frame.Players)
+
+            foreach (var kvp in cachedTracerPaths)
             {
-                if (p.IsDead && !CheatToggles.radarGhosts) continue;
-                if (!p.IsDead && p.IsImpostor && !CheatToggles.radarImps) continue;
-                if (!p.IsDead && !p.IsImpostor && !CheatToggles.radarCrew) continue;
+                kvp.Value.Clear();
+            }
 
-                if (!cachedTracerPaths.ContainsKey(p.PlayerId))
+
+            int endFrameIdx = FindFrameIndex(round, time);
+            int startFrameIdx = FindFrameIndex(round, startTime);
+
+            if (endFrameIdx < 0) endFrameIdx = 0;
+            if (startFrameIdx < 0) startFrameIdx = 0;
+
+
+            for (int i = endFrameIdx; i >= startFrameIdx; i--)
+            {
+                RadarFrame frame = round.Frames[i];
+                if (frame.Time > time) continue;
+                if (frame.Time < startTime) break;
+
+                foreach (var p in frame.Players)
                 {
-                    cachedTracerPaths[p.PlayerId] = new List<Vector2>();
-                    cachedTracerColors[p.PlayerId] = GetPlayerDisplayColorFromFrame(p);
+                    if (p.IsDead && !CheatToggles.radarGhosts) continue;
+                    if (!p.IsDead && p.IsImpostor && !CheatToggles.radarImps) continue;
+                    if (!p.IsDead && !p.IsImpostor && !CheatToggles.radarCrew) continue;
+
+                    if (!cachedTracerPaths.TryGetValue(p.PlayerId, out List<Vector2> path))
+                    {
+                        path = new List<Vector2>(MaxTracerPoints);
+                        cachedTracerPaths[p.PlayerId] = path;
+                        cachedTracerColors[p.PlayerId] = GetPlayerDisplayColorFromFrame(p);
+                    }
+
+
+
+                    if (path.Count == 0)
+                    {
+                        path.Add(p.Position);
+                    }
+                    else
+                    {
+                        Vector2 lastPos = path[path.Count - 1];
+                        float dx = p.Position.x - lastPos.x;
+                        float dy = p.Position.y - lastPos.y;
+
+
+                        float distSq = dx * dx + dy * dy;
+                        if (distSq > MinPointDistanceSq)
+                        {
+
+                            if (path.Count >= MaxTracerPoints)
+                            {
+                                path.RemoveAt(0);
+                            }
+                            path.Add(p.Position);
+                        }
+                    }
                 }
-                cachedTracerPaths[p.PlayerId].Add(p.Position);
             }
         }
+
 
         foreach (var kvp in cachedTracerPaths)
         {
@@ -870,20 +950,44 @@ public class RadarUI : MonoBehaviour
                 Vector2 p1 = points[i];
                 Vector2 p2 = points[i + 1];
 
-                if (Vector2.Distance(p1, p2) > 4.0f) continue;
+                float dx = p1.x - p2.x;
+                float dy = p1.y - p2.y;
+                float sqDist = dx * dx + dy * dy;
 
-                Vector2 rel1 = p1 - camPos;
-                Vector2 rel2 = p2 - camPos;
+                if (sqDist > 16f) continue;
+                if (sqDist < 0.0001f) continue;
+                if (dx * dx + dy * dy > 16f) continue;
 
-                Vector2 screen1 = new Vector2(centerX + rel1.x * scale, centerY - rel1.y * scale);
-                Vector2 screen2 = new Vector2(centerX + rel2.x * scale, centerY - rel2.y * scale);
+                float sx1 = centerX + (p1.x - camPos.x) * scale;
+                float sy1 = centerY - (p1.y - camPos.y) * scale;
+                float sx2 = centerX + (p2.x - camPos.x) * scale;
+                float sy2 = centerY - (p2.y - camPos.y) * scale;
 
-                if (bounds.Contains(screen1) || bounds.Contains(screen2))
-                {
-                    DrawLine(screen1, screen2, c, 2f);
-                }
+
+                if ((sx1 < 0 && sx2 < 0) || (sx1 > currentRadarWidth && sx2 > currentRadarWidth)) continue;
+                if ((sy1 < 20 && sy2 < 20) || (sy1 > RadarHeight + 20 && sy2 > RadarHeight + 20)) continue;
+
+                DrawLineFast(sx1, sy1, sx2, sy2, c, 2f);
             }
         }
+    }
+
+
+    private void DrawLineFast(float x1, float y1, float x2, float y2, Color color, float width)
+    {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float length = Mathf.Sqrt(dx * dx + dy * dy);
+
+        if (length < 0.5f) return;
+
+
+        float angle = Mathf.Atan2(dy, dx) * Mathf.Rad2Deg;
+
+        Matrix4x4 matrixBackup = GUI.matrix;
+        GUIUtility.RotateAroundPivot(angle, new Vector2(x1, y1));
+        DrawTextureSafe(new Rect(x1, y1 - width * 0.5f, length + width * 0.5f, width), squareTex, color);
+        GUI.matrix = matrixBackup;
     }
 
     private void DrawEvents(float centerX, float centerY, float scale, Vector2 camPos, float currentTime, RadarRound round)
@@ -931,21 +1035,21 @@ public class RadarUI : MonoBehaviour
                     case RadarEventType.VentOut: icon = (ventOutTex != null) ? ventOutTex : circleTex; break;
                     case RadarEventType.Task: icon = (tickTex != null) ? tickTex : squareTex; break;
                     case RadarEventType.Shapeshift:
-                        
+
                         if (shiftIconWhiteTex != null && shiftIconRedTex != null)
                         {
                             DrawTextureSafe(new Rect(x - 10, y - 10, 20, 20), shiftIconWhiteTex, c);
-                            
-                            
-                            
+
+
+
                             Color overlayColor = Color.white;
                             overlayColor.a = c.a;
                             DrawTextureSafe(new Rect(x - 10, y - 10, 20, 20), shiftIconRedTex, overlayColor);
-                            icon = null; 
+                            icon = null;
                         }
                         else
                         {
-                            icon = squareTex; 
+                            icon = squareTex;
                         }
                         break;
                 }
@@ -962,7 +1066,7 @@ public class RadarUI : MonoBehaviour
     {
         int frameIndex = FindFrameIndex(round, time);
         if (frameIndex < 0 || frameIndex >= round.Frames.Count) return fallback;
-        
+
         RadarFrame bestFrame = round.Frames[frameIndex];
         if (bestFrame.Players == null) return fallback;
 
@@ -1002,7 +1106,7 @@ public class RadarUI : MonoBehaviour
             if (GUI.Button(new Rect(95, row1Y, 50, 18), "Next >", radarButtonStyle) && viewingRoundIndex < allRounds.Count)
             {
                 viewingRoundIndex++;
-                if (viewingRoundIndex >= allRounds.Count) viewingRoundIndex = -1; 
+                if (viewingRoundIndex >= allRounds.Count) viewingRoundIndex = -1;
                 currentReplayTime = 0f;
             }
             if (viewingRoundIndex >= 0 && GUI.Button(new Rect(150, row1Y, 45, 18), "LIVE", radarButtonStyle))
@@ -1023,7 +1127,7 @@ public class RadarUI : MonoBehaviour
         }
 
         GUI.Label(new Rect(5, row2Y, 100, 18), $"Tracers: {(int)(tracerDuration * 1000)}ms", radarLabelStyle);
-        tracerDuration = GUI.HorizontalSlider(new Rect(110, row2Y + 5, width - 120, 12), tracerDuration, 0f, 3f);
+        tracerDuration = Utils.CustomSlider(new Rect(110, row2Y + 5, width - 120, 12), tracerDuration, 0f, 3f);
 
         string timeText;
         if (isLiveNow)
@@ -1076,7 +1180,7 @@ public class RadarUI : MonoBehaviour
         float sliderX = isLiveNow ? 55 : 85;
         float sliderWidth = width - sliderX - 70;
 
-        float newVal = GUI.HorizontalSlider(new Rect(sliderX, row3Y + 5, sliderWidth, 12), currentReplayTime, 0f, sliderMaxTime);
+        float newVal = Utils.CustomSlider(new Rect(sliderX, row3Y + 5, sliderWidth, 12), currentReplayTime, 0f, sliderMaxTime);
 
         if (Mathf.Abs(newVal - currentReplayTime) > 0.0001f)
         {

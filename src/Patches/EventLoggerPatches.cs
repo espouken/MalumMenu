@@ -21,7 +21,10 @@ public static class PlayerPhysics_RpcEnterVent_EventLogger
         string ventName = GetCleanVentName(ventId);
         string playerName = ConsoleUI.GetColoredName(pc.Data);
 
-        MalumMenu.consoleUI?.RegisterEnterVent(playerId, playerName, ventId, ventName);
+        if (CheatToggles.eventLogVents)
+        {
+            MalumMenu.consoleUI?.RegisterEnterVent(playerId, playerName, ventId, ventName);
+        }
 
         RadarUI.Instance?.RegisterEvent(RadarUI.RadarEventType.VentIn, pc.GetTruePosition(), Color.gray, playerId);
     }
@@ -66,7 +69,10 @@ public static class PlayerPhysics_RpcExitVent_EventLogger
 
         string ventName = PlayerPhysics_RpcEnterVent_EventLogger.GetCleanVentName(ventId);
 
-        MalumMenu.consoleUI?.RegisterExitVent(playerId, ventId, ventName);
+        if (CheatToggles.eventLogVents)
+        {
+            MalumMenu.consoleUI?.RegisterExitVent(playerId, ventId, ventName);
+        }
 
         RadarUI.Instance?.RegisterEvent(RadarUI.RadarEventType.VentOut, pc.GetTruePosition(), Color.gray, playerId);
     }
@@ -81,11 +87,13 @@ public static class PlayerControl_MurderPlayer_EventLogger
         if (__instance.Data == null || target.Data == null) return;
 
         if ((resultFlags & MurderResultFlags.Succeeded) == 0) return;
+        if (CheatToggles.eventLogKills)
+        {
+            string killerName = ConsoleUI.GetColoredName(__instance.Data);
+            string victimName = ConsoleUI.GetColoredName(target.Data);
 
-        string killerName = ConsoleUI.GetColoredName(__instance.Data);
-        string victimName = ConsoleUI.GetColoredName(target.Data);
-
-        MalumMenu.consoleUI?.Log($"<color=#FF0000>☠</color> {killerName} killed {victimName}");
+            MalumMenu.consoleUI?.Log($"<color=#FF0000>☠</color> {killerName} killed {victimName}");
+        }
 
         RadarUI.Instance?.RegisterEvent(RadarUI.RadarEventType.Kill, target.GetTruePosition(), Color.red, target.PlayerId);
     }
@@ -102,12 +110,15 @@ public static class PlayerControl_ReportDeadBody_EventLogger
 
         if (target == null)
         {
-            MalumMenu.consoleUI?.Log($"<color=#FF4500>🚨</color> {reporterName} called an emergency meeting");
+            if (CheatToggles.eventLogBodyReports) MalumMenu.consoleUI?.Log($"<color=#FF4500>🚨</color> {reporterName} called an emergency meeting");
         }
         else
         {
-            string victimName = ConsoleUI.GetColoredName(target);
-            MalumMenu.consoleUI?.Log($"<color=#FF4500>🚨</color> {reporterName} reported {victimName}'s body");
+            if (CheatToggles.eventLogBodyReports)
+            {
+                string victimName = ConsoleUI.GetColoredName(target);
+                MalumMenu.consoleUI?.Log($"<color=#FF4500>🚨</color> {reporterName} reported {victimName}'s body");
+            }
         }
     }
 }
@@ -145,6 +156,8 @@ public static class MeetingHud_BloopAVoteIcon_EventLogger
         if (loggedVotes.Contains(voteKey)) return;
         loggedVotes.Add(voteKey);
 
+        if (!CheatToggles.eventLogVotes) return;
+        
         string voterName = ConsoleUI.GetColoredName(voterPlayer);
 
         if (targetId == 253)
@@ -223,6 +236,7 @@ public static class ShipStatus_RpcUpdateSystem_EventLogger
     public static void Postfix(ShipStatus __instance, SystemTypes systemType, byte amount, bool __state)
     {
         if (!CheatToggles.eventLogger) return;
+        if (!CheatToggles.eventLogSabotage) return;
 
         bool wasActive = __state;
         bool isActive = false;
@@ -255,20 +269,22 @@ public static class PlayerControl_CompleteTask_EventLogger
     public static void Postfix(PlayerControl __instance, uint idx)
     {
         if (__instance == null || __instance.Data == null) return;
-
-        string playerName = ConsoleUI.GetColoredName(__instance.Data);
-        string taskName = "Task";
-
-        foreach (var task in __instance.myTasks)
+        if (CheatToggles.eventLogTasks)
         {
-            if (task.Id == idx)
-            {
-                taskName = task.TaskType.ToString();
-                break;
-            }
-        }
+            string playerName = ConsoleUI.GetColoredName(__instance.Data);
+            string taskName = "Task";
 
-        MalumMenu.consoleUI?.Log($"<color=#00FF00>✅</color> {playerName} completed {taskName}");
+            foreach (var task in __instance.myTasks)
+            {
+                if (task.Id == idx)
+                {
+                    taskName = task.TaskType.ToString();
+                    break;
+                }
+            }
+
+            MalumMenu.consoleUI?.Log($"<color=#00FF00>✅</color> {playerName} completed {taskName}");
+        }
 
         RadarUI.Instance?.RegisterEvent(RadarUI.RadarEventType.Task, __instance.GetTruePosition(), Color.green, __instance.PlayerId);
     }
@@ -280,6 +296,7 @@ public static class AmongUsClient_OnPlayerLeft_EventLogger
     public static void Prefix(ClientData data, DisconnectReasons reason)
     {
         if (data == null || data.Character == null || data.Character.Data == null) return;
+        if (!CheatToggles.eventLogDisconnects) return;
 
         string playerName = ConsoleUI.GetColoredName(data.Character.Data);
         MalumMenu.consoleUI?.Log($"<color=#808080>🚪</color> {playerName} disconnected ({reason})");
@@ -294,15 +311,24 @@ public static class PlayerControl_Shapeshift_EventLogger
         try
         {
             if (__instance == null || __instance.Data == null) return;
+            if (CheatToggles.eventLogShapeshift)
+            {
+                string shifterName = ConsoleUI.GetColoredName(__instance.Data);
 
-            string shifterName = ConsoleUI.GetColoredName(__instance.Data);
+                
+                if (targetPlayer != null && targetPlayer.Data != null && targetPlayer.PlayerId != __instance.PlayerId)
+                {
+                    string targetName = ConsoleUI.GetColoredName(targetPlayer.Data);
+                    MalumMenu.consoleUI?.Log($"<color=#FF8C00>🎭</color> {shifterName} shapeshifted into {targetName}");
+                }
+                else
+                {
+                    MalumMenu.consoleUI?.Log($"<color=#FF8C00>🎭</color> {shifterName} reverted to original form");
+                }
+            }
 
-            
             if (targetPlayer != null && targetPlayer.Data != null && targetPlayer.PlayerId != __instance.PlayerId)
             {
-                string targetName = ConsoleUI.GetColoredName(targetPlayer.Data);
-                MalumMenu.consoleUI?.Log($"<color=#FF8C00>🎭</color> {shifterName} shapeshifted into {targetName}");
-
                 
                 Color targetColor = Color.gray;
                 int colorId = targetPlayer.Data.DefaultOutfit.ColorId;
@@ -315,8 +341,6 @@ public static class PlayerControl_Shapeshift_EventLogger
             }
             else
             {
-                MalumMenu.consoleUI?.Log($"<color=#FF8C00>🎭</color> {shifterName} reverted to original form");
-
                 
                 Color originalColor = Color.gray;
                 int colorId = __instance.Data.DefaultOutfit.ColorId;
@@ -341,6 +365,7 @@ public static class PlayerControl_RpcProtectPlayer_EventLogger
     public static void Postfix(PlayerControl __instance, PlayerControl target)
     {
         if (!CheatToggles.eventLogger) return;
+        if (!CheatToggles.eventLogProtect) return;
         if (__instance == null || __instance.Data == null || target == null || target.Data == null) return;
 
         string angelName = ConsoleUI.GetColoredName(__instance.Data);
@@ -356,6 +381,7 @@ public static class PlayerControl_RpcSetScanner_EventLogger
     public static void Postfix(PlayerControl __instance, bool value)
     {
         if (!CheatToggles.eventLogger) return;
+        if (!CheatToggles.eventLogScanner) return;
         if (__instance == null || __instance.Data == null) return;
 
         if (value)
@@ -372,6 +398,7 @@ public static class PlayerControl_RpcSetRole_EventLogger
     public static void Postfix(PlayerControl __instance, RoleTypes roleType)
     {
         if (!CheatToggles.eventLogger) return;
+        if (!CheatToggles.eventLogRoles) return;
         if (__instance == null || __instance.Data == null) return;
 
         string playerName = ConsoleUI.GetColoredName(__instance.Data);

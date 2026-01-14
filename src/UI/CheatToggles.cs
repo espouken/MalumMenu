@@ -52,6 +52,17 @@ public struct CheatToggles
     public static bool revealVotes;
     public static bool moreLobbyInfo;
     public static bool eventLogger;
+    public static bool eventLogKills = true;
+    public static bool eventLogVents = true;
+    public static bool eventLogTasks = true;
+    public static bool eventLogVotes = true;
+    public static bool eventLogSabotage = true;
+    public static bool eventLogBodyReports = true;
+    public static bool eventLogDisconnects = true;
+    public static bool eventLogShapeshift = true;
+    public static bool eventLogProtect = true;
+    public static bool eventLogScanner = true;
+    public static bool eventLogRoles = true;
 
     public static bool spectate;
     public static bool zoomOut;
@@ -92,6 +103,7 @@ public struct CheatToggles
     public static bool spamCloseAllDoors;
     public static bool autoOpenDoorsOnUse;
     public static bool autoFixLights;
+    public static bool autoFixComms;
     public static bool unfixableLights;
     public static bool commsSab;
     public static bool elecSab;

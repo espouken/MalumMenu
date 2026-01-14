@@ -1,5 +1,7 @@
 using System.Linq;
 using UnityEngine;
+using System.Collections.Generic;
+using AmongUs.GameOptions;
 
 namespace MalumMenu;
 
@@ -10,7 +12,7 @@ public class TasksUI : MonoBehaviour
     private GUIStyle _playerHeaderStyle;
     private GUIStyle _normalButtonStyle;
     private Il2CppSystem.Text.StringBuilder _tasksString = new();
-    private readonly System.Collections.Generic.Dictionary<string, bool> _expandedPlayers = new();
+    private readonly Dictionary<string, bool> _expandedPlayers = new();
 
     private void OnGUI()
     {
@@ -26,7 +28,8 @@ public class TasksUI : MonoBehaviour
             fontSize = 13
         };
 
-        if(ColorUtility.TryParseHtmlString(MalumMenu.menuHtmlColor.Value, out var configUIColor)){
+        if (ColorUtility.TryParseHtmlString(MalumMenu.menuHtmlColor.Value, out var configUIColor))
+        {
             GUI.backgroundColor = configUIColor;
         }
 
@@ -38,15 +41,37 @@ public class TasksUI : MonoBehaviour
         GUILayout.BeginVertical();
         _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, false, true);
 
+        var sortedPlayers = new List<PlayerControl>();
         foreach (var pc in PlayerControl.AllPlayerControls)
         {
             if (!pc.Data || !pc.Data.Role || string.IsNullOrEmpty(pc.Data.PlayerName)) continue;
+            sortedPlayers.Add(pc);
+        }
 
+        sortedPlayers.Sort((a, b) =>
+        {
+            int GetScore(PlayerControl p)
+            {
+                if (p.Data.Role.TeamType == RoleTeamTypes.Impostor) return 0;
+                if (p.Data.Role.Role == RoleTypes.Crewmate) return 2;
+                return 1;
+            }
+
+            int scoreA = GetScore(a);
+            int scoreB = GetScore(b);
+
+            if (scoreA != scoreB) return scoreA.CompareTo(scoreB);
+
+            return a.PlayerId.CompareTo(b.PlayerId);
+        });
+
+        foreach (var pc in sortedPlayers)
+        {
             GUILayout.BeginVertical();
 
             var nameKey = pc.name;
             _expandedPlayers.TryGetValue(nameKey, out var expanded);
-            var arrow = expanded ? "\u25BC" : "\u25B6"; 
+            var arrow = expanded ? "\u25BC" : "\u25B6";
 
             var taskCount = pc.myTasks.Count;
             var completeCount = pc.myTasks.ToArray().Count(t => t.IsComplete);
@@ -64,7 +89,9 @@ public class TasksUI : MonoBehaviour
                 taskCount -= 1;
             }
 
-            if (GUILayout.Button($"{arrow} [{completeCount}/{taskCount}] <color=#{ColorUtility.ToHtmlStringRGB(pc.Data.Color)}>{nameKey}</color>", _playerHeaderStyle))
+            var roleName = Utils.getRoleName(pc.Data);
+
+            if (GUILayout.Button($"{arrow} [{completeCount}/{taskCount}] <color=#{ColorUtility.ToHtmlStringRGB(pc.Data.Color)}>{nameKey}</color> <size=12>({roleName})</size>", _playerHeaderStyle))
             {
                 _expandedPlayers[nameKey] = !expanded;
                 expanded = !expanded;
@@ -76,12 +103,12 @@ public class TasksUI : MonoBehaviour
                 GUILayout.BeginVertical();
                 foreach (var task in pc.myTasks)
                 {
-                    
+
                     if (task.TaskType is TaskTypes.ResetReactor or TaskTypes.RestoreOxy or TaskTypes.FixLights or TaskTypes.FixComms or TaskTypes.ResetSeismic or TaskTypes.StopCharles or TaskTypes.MushroomMixupSabotage) continue;
 
                     _tasksString.Clear();
                     task.AppendTaskText(_tasksString);
-                    
+
                     var taskText = _tasksString.ToString();
                     if (taskText.Contains("You're dead") || taskText.Contains("Sabotage and kill")) continue;
 

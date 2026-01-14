@@ -15,9 +15,7 @@ public static class PlatformSpecificData_Serialize
 {
     public static void Prefix(PlatformSpecificData __instance)
     {
-
         MalumSpoof.spoofPlatform(__instance);
-
     }
 }
 
@@ -36,21 +34,15 @@ public static class FreeChatInputField_UpdateCharCount
 
         if (length < 90)
         {
-
             __instance.charCountText.color = Color.black;
-
         }
         else if (length < 119)
         {
-
             __instance.charCountText.color = new Color(1f, 1f, 0f, 1f);
-
         }
         else
         {
-
             __instance.charCountText.color = Color.red;
-
         }
     }
 }
@@ -97,15 +89,11 @@ public static class VersionShower_Start
     {
         if (MalumMenu.supportedAU.Contains(Application.version))
         {
-
             __instance.text.text = $"MalumMenu v{MalumMenu.malumVersion} (v{Application.version})";
-
         }
         else
         {
-
             __instance.text.text = $"MalumMenu v{MalumMenu.malumVersion} (<color=red>v{Application.version}</color>)";
-
         }
     }
 }
@@ -119,16 +107,12 @@ public static class PingTracker_Update
 
         if (AmongUsClient.Instance.IsGameStarted)
         {
-
             __instance.aspectPosition.DistanceFromEdge = new Vector3(-0.21f, 0.50f, 0f);
-
             __instance.text.text = $"MalumMenu by scp222thj & Astral ~ {Utils.getColoredPingText(AmongUsClient.Instance.Ping)}";
-
             return;
         }
 
         __instance.text.text = $"MalumMenu by scp222thj & Astral\n{Utils.getColoredPingText(AmongUsClient.Instance.Ping)}";
-
     }
 }
 
@@ -137,9 +121,7 @@ public static class HatManager_Initialize
 {
     public static void Postfix(HatManager __instance)
     {
-
         CosmeticsUnlocker.unlockCosmetics(__instance);
-
     }
 }
 
@@ -392,6 +374,26 @@ public static class SwitchMinigame_Begin
 
         __instance.Close();
 
+        return false;
+    }
+}
+
+
+[HarmonyPatch(typeof(TuneRadioMinigame), nameof(TuneRadioMinigame.Begin))]
+public static class TuneRadioMinigame_Begin
+{
+    public static bool Prefix(TuneRadioMinigame __instance)
+    {
+        if (!CheatToggles.autoFixComms) return true;
+
+        // one of them works, idk which :sob:
+
+        ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Comms, 128);
+
+        ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Comms, 255);
+
+        ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Comms, 0);
+        __instance.Close();
         return false;
     }
 }
