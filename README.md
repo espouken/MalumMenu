@@ -59,8 +59,10 @@ Changes from @astra1dev's fork:
 
 #### Additions
 - Added "Auto-Fix Lights On Use" (Ship category)
+- Added "Auto-Fix Comms On Use" (Ship category)
 - Added "Bind Close Room" keybind to close doors in current/previous room (Ship category, note: doesn't work properly on decontamination)
 - Added "Event Logger" to ESP category, which logs: kills, body reports, votes, sabotages, completed tasks, vent entries/exits, and shapeshifts
+- Added "Event Logger Filter" sub-tab to ESP category with options to choose what you want to log on Event Logger
 - Added "Radar" sub-tab to ESP category with replay functionality, featuring:
   - Player rendering for Crewmates, Impostors, Ghosts and Dead bodys
   - Tracking with color/role-based display options (else its role color based)
@@ -69,6 +71,11 @@ Changes from @astra1dev's fork:
   - Configurable tracers showing player movement paths (between 0-3000ms)
   - Toggle between follow (centered, zoomed) and fixed (full map) view modes
 - Added replay system to Radar with round navigation (Prev/Next/Live), timeline slider, and play/pause controls
+
+#### Improvements
+
+- Improved "Task Menu", now it shows roles
+- Improved Sliders behaviours, now its easier to use and well.. "slide"
 
 ---
 
