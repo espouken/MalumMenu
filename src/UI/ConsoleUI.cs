@@ -183,4 +183,13 @@ public class ConsoleUI : MonoBehaviour
 
         GUI.DragWindow();
     }
+    public bool IsMouseOver()
+    {
+        if (!isVisible) return false;
+        
+        Vector2 mousePos = Input.mousePosition;
+        mousePos.y = Screen.height - mousePos.y; 
+        
+        return windowRect.Contains(mousePos);
+    }
 }

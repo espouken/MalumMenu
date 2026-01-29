@@ -105,7 +105,8 @@ public class MenuUI : MonoBehaviour
             ],
             [
                 new SubmenuInfo("Impostor", false, [
-                    new ToggleInfo(" Kill Reach", () => CheatToggles.killReach, x => CheatToggles.killReach = x)
+                    new ToggleInfo(" Kill Reach", () => CheatToggles.killReach, x => CheatToggles.killReach = x),
+                    new ToggleInfo(" Do Tasks", () => CheatToggles.impostorTasks, x => CheatToggles.impostorTasks = x)
                 ]),
 
                 new SubmenuInfo("Shapeshifter", false, [
@@ -129,7 +130,9 @@ public class MenuUI : MonoBehaviour
                         x => CheatToggles.noTrackingDelay = x),
 
                     new ToggleInfo(" No Track Cooldown", () => CheatToggles.noTrackingCooldown,
-                        x => CheatToggles.noTrackingCooldown = x)
+                        x => CheatToggles.noTrackingCooldown = x),
+
+                    new ToggleInfo(" Track Reach", () => CheatToggles.trackReach, x => CheatToggles.trackReach = x)
 
                 ]),
 
@@ -149,6 +152,10 @@ public class MenuUI : MonoBehaviour
                     new ToggleInfo(" No Vitals Cooldown", () => CheatToggles.noVitalsCooldown,
                         x => CheatToggles.noVitalsCooldown = x)
 
+                ]),
+
+                new SubmenuInfo("Detective", false, [
+                    new ToggleInfo(" Interrogate Reach", () => CheatToggles.interrogateReach, x => CheatToggles.interrogateReach = x)
                 ])
 
             ]));
@@ -225,8 +232,10 @@ public class MenuUI : MonoBehaviour
         groups.Add(new GroupInfo("Passive", false, [
             new ToggleInfo(" Free Cosmetics", () => CheatToggles.freeCosmetics, x => CheatToggles.freeCosmetics = x),
             new ToggleInfo(" Avoid Penalties", () => CheatToggles.avoidBans, x => CheatToggles.avoidBans = x),
+            new ToggleInfo(" Copy Lobby Code on Disconnect", () => CheatToggles.copyLobbyCodeOnDisconnect, x => CheatToggles.copyLobbyCodeOnDisconnect = x),
             new ToggleInfo(" Unlock Extra Features", () => CheatToggles.unlockFeatures, x => CheatToggles.unlockFeatures = x),
             new ToggleInfo(" Spoof Date to April 1st", () => CheatToggles.spoofAprilFoolsDate, x => CheatToggles.spoofAprilFoolsDate = x),
+            new ToggleInfo(" Stealth Mode", () => CheatToggles.stealthMode, x => CheatToggles.stealthMode = x),
             new ToggleInfo(" Panic (Disable MalumMenu)", () => CheatToggles.panic, x => CheatToggles.panic = x)
         ], []));
 
@@ -310,6 +319,15 @@ public class MenuUI : MonoBehaviour
             Utils.Panic();
             isPanicked = true;
             CheatToggles.panic = false;
+        }
+
+        if (CheatToggles.stealthMode && ModManager.Instance.ModStamp && ModManager.Instance.ModStamp.enabled)
+        {
+            ModManager.Instance.ModStamp.enabled = false;
+        }
+        else if (!CheatToggles.stealthMode && ModManager.Instance.ModStamp && !ModManager.Instance.ModStamp.enabled)
+        {
+            ModManager.Instance.ShowModStamp();
         }
 
         if (!Utils.isPlayer)

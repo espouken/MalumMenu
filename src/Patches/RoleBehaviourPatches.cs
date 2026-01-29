@@ -123,5 +123,34 @@ public static class ImpostorRole_FindClosestTarget
 
         return false;
 
+
+    }
+}
+
+[HarmonyPatch(typeof(DetectiveRole), nameof(DetectiveRole.FindClosestTarget))]
+public static class DetectiveRole_FindClosestTarget
+{
+    public static bool Prefix(DetectiveRole __instance, ref PlayerControl __result)
+    {
+        if (!CheatToggles.interrogateReach) return true;
+        var playerList = Utils.getPlayersSortedByDistance().Where(player => !player.IsNull() && __instance.IsValidTarget(player.Data) && player.Collider.enabled).ToList();
+
+        __result = playerList[0];
+
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(TrackerRole), nameof(TrackerRole.FindClosestTarget))]
+public static class TrackerRole_FindClosestTarget
+{
+    public static bool Prefix(TrackerRole __instance, ref PlayerControl __result)
+    {
+        if (!CheatToggles.trackReach) return true;
+        var playerList = Utils.getPlayersSortedByDistance().Where(player => !player.IsNull() && __instance.IsValidTarget(player.Data) && player.Collider.enabled).ToList();
+
+        __result = playerList[0];
+
+        return false;
     }
 }

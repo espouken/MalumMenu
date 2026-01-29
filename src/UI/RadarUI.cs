@@ -29,6 +29,8 @@ public class RadarUI : MonoBehaviour
     private float currentReplayTime = 0f;
     private float lastSliderValue = -1f;
     private bool isReplayPaused = false;
+    private float replaySpeed = 1.0f;
+    private bool isDraggingSlider = false;
 
     private float tracerDuration = 0f;
 
@@ -100,6 +102,7 @@ public class RadarUI : MonoBehaviour
     private Texture2D circleTex;
     private Texture2D circleOutlineTex;
     private Texture2D squareTex;
+    private Texture2D lineTex; 
     private Texture2D crossTex;
 
     private Dictionary<byte, Texture2D> mapTextures = new();
@@ -167,8 +170,18 @@ public class RadarUI : MonoBehaviour
         else
         {
             float relativeNow = Time.time - recordingStartTime;
-            if (Time.frameCount % 5 == 0)
+            
+            
+            if (Time.frameCount % 10 == 0)
             {
+                
+                if (Time.frameCount % 60 == 0)
+                {
+                    var bodies = UnityEngine.Object.FindObjectsOfType<DeadBody>();
+                    cachedBodies.Clear();
+                    foreach (var body in bodies) cachedBodies.Add(body);
+                }
+
                 RecordFrame(relativeNow - currentRound.StartTime);
             }
         }
@@ -185,7 +198,7 @@ public class RadarUI : MonoBehaviour
 
         if (!isLive && !isReplayPaused)
         {
-            currentReplayTime += Time.deltaTime;
+            currentReplayTime += Time.deltaTime * replaySpeed;
 
             if (currentReplayTime > maxTime)
             {
@@ -241,7 +254,9 @@ public class RadarUI : MonoBehaviour
         viewingRoundIndex = -1;
         currentReplayTime = 0f;
         isReplayPaused = false;
+        isReplayPaused = false;
         InvalidateTracerCache();
+        cachedBodies.Clear(); 
     }
 
     private void InvalidateTracerCache()
@@ -253,6 +268,20 @@ public class RadarUI : MonoBehaviour
         cachedTracerPaths.Clear();
         cachedTracerColors.Clear();
     }
+
+    
+    private static readonly HashSet<DeadBody> cachedBodies = new();
+
+    public static void AddBody(DeadBody body)
+    {
+        if (body != null) cachedBodies.Add(body);
+    }
+
+    public static void RemoveBody(DeadBody body)
+    {
+        if (body != null) cachedBodies.Remove(body);
+    }
+    
 
     public void OnMeetingEnd()
     {
@@ -288,13 +317,14 @@ public class RadarUI : MonoBehaviour
             });
         }
 
-        GameObject[] bodyObjects = GameObject.FindGameObjectsWithTag("DeadBody");
-        foreach (var bodyObject in bodyObjects)
-        {
-            if (bodyObject == null) continue;
-            DeadBody deadBody = bodyObject.GetComponent<DeadBody>();
-            if (deadBody == null) continue;
+        
+        
+        cachedBodies.RemoveWhere(b => b == null); 
 
+        foreach (var deadBody in cachedBodies)
+        {
+            if (deadBody == null) continue;
+            
             frame.Bodies.Add(new BodyFrameData
             {
                 Position = deadBody.TruePosition,
@@ -339,9 +369,13 @@ public class RadarUI : MonoBehaviour
         circleTex = CreateCircleTexture(64, Color.white, true);
         circleOutlineTex = CreateCircleTexture(64, Color.white, false);
 
+        
         squareTex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
         squareTex.SetPixel(0, 0, Color.white);
         squareTex.Apply();
+
+        
+        lineTex = CreateLineTexture(16); 
 
         crossTex = Utils.LoadTextureFromResources("cross.png");
         if (crossTex == null) crossTex = CreateCrossTexture(32);
@@ -566,21 +600,19 @@ public class RadarUI : MonoBehaviour
 
             if (isLive && activeRound == currentRound && currentRound.Frames.Count > 0)
             {
-                DrawReplayFrame(centerX, centerY, renderScale, cameraCenterPos, displayTime, activeRound);
+                DrawReplayFrame(centerX, centerY, renderScale, cameraCenterPos, displayTime, activeRound, true);
                 DrawLocalPlayer(centerX, centerY, renderScale, cameraCenterPos);
             }
             else
             {
-                DrawReplayFrame(centerX, centerY, renderScale, cameraCenterPos, displayTime, activeRound);
+                DrawReplayFrame(centerX, centerY, renderScale, cameraCenterPos, displayTime, activeRound, false);
             }
 
             DrawEvents(centerX, centerY, renderScale, cameraCenterPos, displayTime, activeRound);
 
             DrawReplayControls(RadarHeight, activeRound, maxTime, isLive);
 
-            string modeText = CheatToggles.radarColorBased ? "[Color]" : "[Role]";
 
-            GUI.Label(new Rect(5, RadarHeight + 75, 100, 16), modeText, radarLabelStyle);
 
             if (Input.GetKey(KeyCode.LeftAlt))
             {
@@ -780,7 +812,7 @@ public class RadarUI : MonoBehaviour
         return Color.gray;
     }
 
-    private void DrawReplayFrame(float centerX, float centerY, float scale, Vector2 camPos, float time, RadarRound round)
+    private void DrawReplayFrame(float centerX, float centerY, float scale, Vector2 camPos, float time, RadarRound round, bool skipLocalPlayer)
     {
         int frameIndex = FindFrameIndex(round, time);
         if (frameIndex < 0 || frameIndex >= round.Frames.Count) return;
@@ -808,6 +840,7 @@ public class RadarUI : MonoBehaviour
 
         foreach (var p in bestFrame.Players)
         {
+            if (skipLocalPlayer && PlayerControl.LocalPlayer && p.PlayerId == PlayerControl.LocalPlayer.PlayerId) continue;
             if (p.IsDead && !CheatToggles.radarGhosts) continue;
             if (!p.IsDead && p.IsImpostor && !CheatToggles.radarImps) continue;
             if (!p.IsDead && !p.IsImpostor && !CheatToggles.radarCrew) continue;
@@ -967,11 +1000,34 @@ public class RadarUI : MonoBehaviour
                 if ((sx1 < 0 && sx2 < 0) || (sx1 > currentRadarWidth && sx2 > currentRadarWidth)) continue;
                 if ((sy1 < 20 && sy2 < 20) || (sy1 > RadarHeight + 20 && sy2 > RadarHeight + 20)) continue;
 
-                DrawLineFast(sx1, sy1, sx2, sy2, c, 2f);
+                DrawLineFast(sx1, sy1, sx2, sy2, c, 3.5f);
             }
         }
     }
 
+    
+    private Texture2D CreateLineTexture(int height)
+    {
+        Texture2D tex = new Texture2D(4, height, TextureFormat.RGBA32, false);
+        float center = (height - 1) / 2f;
+        
+        for (int y = 0; y < height; y++)
+        {
+            float distFromCenter = Mathf.Abs(y - center);
+            float alpha = 1f - (distFromCenter / center);
+            alpha = Mathf.Pow(alpha, 0.5f); 
+            Color c = new Color(1f, 1f, 1f, alpha);
+            for (int x = 0; x < 4; x++)
+            {
+                tex.SetPixel(x, y, c);
+            }
+        }
+        
+        tex.Apply();
+        tex.filterMode = FilterMode.Bilinear; 
+        tex.wrapMode = TextureWrapMode.Clamp;
+        return tex;
+    }
 
     private void DrawLineFast(float x1, float y1, float x2, float y2, Color color, float width)
     {
@@ -981,12 +1037,21 @@ public class RadarUI : MonoBehaviour
 
         if (length < 0.5f) return;
 
-
+        
+        
         float angle = Mathf.Atan2(dy, dx) * Mathf.Rad2Deg;
-
         Matrix4x4 matrixBackup = GUI.matrix;
         GUIUtility.RotateAroundPivot(angle, new Vector2(x1, y1));
-        DrawTextureSafe(new Rect(x1, y1 - width * 0.5f, length + width * 0.5f, width), squareTex, color);
+        
+        
+        float extend = width * 0.25f;
+        
+        
+        Texture2D tex = (lineTex != null) ? lineTex : squareTex;
+        
+        
+        DrawTextureSafe(new Rect(x1 - extend, y1 - width * 0.5f, length + extend * 2, width), tex, color);
+        
         GUI.matrix = matrixBackup;
     }
 
@@ -1109,11 +1174,19 @@ public class RadarUI : MonoBehaviour
                 if (viewingRoundIndex >= allRounds.Count) viewingRoundIndex = -1;
                 currentReplayTime = 0f;
             }
-            if (viewingRoundIndex >= 0 && GUI.Button(new Rect(150, row1Y, 45, 18), "LIVE", radarButtonStyle))
+            if (viewingRoundIndex >= 0)
             {
-                viewingRoundIndex = -1;
-                currentReplayTime = sliderMaxTime;
-                isReplayPaused = false;
+                if (GUI.Button(new Rect(150, row1Y, 45, 18), "LIVE", radarButtonStyle))
+                {
+                    viewingRoundIndex = -1;
+                    currentReplayTime = sliderMaxTime;
+                    isReplayPaused = false;
+                }
+            }
+            else
+            {
+               
+               GUIUtility.GetControlID(FocusType.Passive);
             }
         }
         else
@@ -1176,6 +1249,11 @@ public class RadarUI : MonoBehaviour
                 isReplayPaused = !isReplayPaused;
             }
         }
+        else
+        {
+             
+             GUIUtility.GetControlID(FocusType.Passive);
+        }
 
         float sliderX = isLiveNow ? 55 : 85;
         float sliderWidth = width - sliderX - 70;
@@ -1184,16 +1262,20 @@ public class RadarUI : MonoBehaviour
 
         if (Mathf.Abs(newVal - currentReplayTime) > 0.0001f)
         {
-            if (isLiveNow)
-            {
-                viewingRoundIndex = -1;
-                isReplayPaused = false;
-            }
+            
+            isReplayPaused = true;
+            isDraggingSlider = true;
             currentReplayTime = newVal;
         }
         else if (isLiveNow)
         {
             currentReplayTime = sliderMaxTime;
+        }
+
+        if (isDraggingSlider && Input.GetMouseButtonUp(0))
+        {
+            isDraggingSlider = false;
+            isReplayPaused = false;
         }
 
         lastSliderValue = newVal;
@@ -1202,6 +1284,27 @@ public class RadarUI : MonoBehaviour
         if (GUI.Button(new Rect(width - 65, row3Y, 60, 18), viewMode, radarButtonStyle))
         {
             fixedMapMode = !fixedMapMode;
+        }
+
+        
+        float row4Y = controlsStartY + 75;
+        GUI.Label(new Rect(5, row4Y, 40, 18), "Speed:", radarLabelStyle);
+
+        float btnW = 30f;
+        float startX = 50f;
+        
+        float[] speeds = { 0.5f, 0.75f, 1.0f, 1.5f, 2.0f };
+        foreach (float s in speeds)
+        {
+            Color originalColor = GUI.backgroundColor;
+            if (Mathf.Abs(replaySpeed - s) < 0.01f) GUI.backgroundColor = new Color(0.2f, 0.8f, 0.2f); 
+
+            if (GUI.Button(new Rect(startX, row4Y, btnW, 18), s.ToString("0.##").Replace(',','.'), radarButtonStyle))
+            {
+                replaySpeed = s;
+            }
+            GUI.backgroundColor = originalColor;
+            startX += btnW + 2;
         }
     }
 }

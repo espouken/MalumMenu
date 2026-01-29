@@ -255,7 +255,6 @@ public static class Utils
 
     }
 
-
     public static void drawTracer(GameObject sourceObject, GameObject targetObject, Color color)
     {
         var lineRenderer = sourceObject.GetComponent<LineRenderer>();

@@ -386,7 +386,7 @@ public static class TuneRadioMinigame_Begin
     {
         if (!CheatToggles.autoFixComms) return true;
 
-        // one of them works, idk which :sob:
+        
 
         ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Comms, 128);
 
@@ -395,5 +395,36 @@ public static class TuneRadioMinigame_Begin
         ShipStatus.Instance.RpcUpdateSystem(SystemTypes.Comms, 0);
         __instance.Close();
         return false;
+    }
+}
+
+[HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnGameJoined))]
+public static class AmongUsClient_OnGameJoined
+{
+    public static string lastGameIdString = "";
+
+    public static void Postfix(string gameIdString)
+    {
+        lastGameIdString = gameIdString;
+    }
+}
+
+[HarmonyPatch(typeof(DisconnectPopup), nameof(DisconnectPopup.DoShow))]
+public static class DisconnectPopup_DoShow
+{
+    public static void Postfix(DisconnectPopup __instance)
+    {
+        if (!CheatToggles.copyLobbyCodeOnDisconnect) return;
+        GUIUtility.systemCopyBuffer = AmongUsClient_OnGameJoined.lastGameIdString;
+        __instance.SetText(__instance._textArea.text + "\n\nLobby code has been copied to the clipboard.");
+    }
+}
+
+[HarmonyPatch(typeof(Console), nameof(Console.CanUse))]
+public static class Console_CanUse
+{
+    public static void Prefix(Console __instance)
+    {
+        __instance.AllowImpostor = CheatToggles.impostorTasks;
     }
 }

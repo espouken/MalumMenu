@@ -142,6 +142,12 @@ public struct CheatToggles
     public static bool reloadConfig;
     public static bool RGBMode;
 
+    public static bool impostorTasks;
+    public static bool trackReach;
+    public static bool interrogateReach;
+    public static bool copyLobbyCodeOnDisconnect;
+    public static bool stealthMode;
+
     public static readonly Dictionary<string, KeyCode> Keybinds = new();
 
     private static readonly Dictionary<string, FieldInfo> ToggleFields = new();
